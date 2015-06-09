@@ -2,23 +2,21 @@
 
 namespace Codeception\Lib\Connector;
 
-use Codeception\Exception\TestRuntime as TestRuntimeException;
-use Codeception\Exception\ConnectionException;
-use GuzzleHttp\Exception\ConnectException;
+use Codeception\Exception\TestRuntimeException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Post\PostFile;
-use GuzzleHttp\Url;
 use Symfony\Component\BrowserKit\Client;
-use Symfony\Component\BrowserKit\Request as BrowserKitRequest;
 use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
+use GuzzleHttp\Url;
+use Symfony\Component\BrowserKit\Request as BrowserKitRequest;
 
 class Guzzle extends Client
 {
     protected $baseUri;
     protected $requestOptions = [
         'allow_redirects' => false,
-        'headers'         => [],
+        'headers' => [],
     ];
     protected $refreshMaxInterval = 0;
 
@@ -30,16 +28,16 @@ class Guzzle extends Client
     {
         $this->baseUri = $uri;
     }
-
+    
     /**
      * Sets the maximum allowable timeout interval for a meta tag refresh to
      * automatically redirect a request.
-     *
+     * 
      * A meta tag detected with an interval equal to or greater than $seconds
      * would not result in a redirect.  A meta tag without a specified interval
      * or one with a value less than $seconds would result in the client
      * automatically redirecting to the specified URL
-     *
+     * 
      * @param int $seconds Number of seconds
      */
     public function setRefreshMaxInterval($seconds)
@@ -105,7 +103,7 @@ class Guzzle extends Client
             }
             $response->setHeader('Content-Type', $contentType);
         }
-
+        
         $headers = $response->getHeaders();
         $status = $response->getStatusCode();
         $matches = [];
@@ -188,14 +186,12 @@ class Guzzle extends Client
         // Let BrowserKit handle redirects
         try {
             $response = $this->client->send($guzzleRequest);
-        } catch (ConnectException $e) {
-            $url = $this->client->getBaseUrl();
-            throw new ConnectionException("Couldn't connect to $url. Please check that web server is running");
         } catch (RequestException $e) {
-            if (!$e->hasResponse()) {
+            if ($e->hasResponse()) {
+                $response = $e->getResponse();
+            } else {
                 throw $e;
             }
-            $response = $e->getResponse();
         }
         return $this->createResponse($response);
     }
@@ -205,9 +201,9 @@ class Guzzle extends Client
         $headers = [];
         $server = $request->getServer();
 
-        $uri = Url::fromString($request->getUri());
+        $uri                 = Url::fromString($request->getUri());
         $server['HTTP_HOST'] = $uri->getHost();
-        $port = $uri->getPort();
+        $port                = $uri->getPort();
         if ($port !== null && $port !== 443 && $port != 80) {
             $server['HTTP_HOST'] .= ':' . $port;
         }
@@ -226,7 +222,7 @@ class Guzzle extends Client
 
     protected function extractBody(BrowserKitRequest $request)
     {
-        if (in_array(strtoupper($request->getMethod()), array('GET','HEAD'))) {
+        if (in_array(strtoupper($request->getMethod()), ['GET','HEAD'])) {
             return null;
         }
         if ($request->getContent() !== null) {
@@ -234,7 +230,7 @@ class Guzzle extends Client
         } else {
             return $request->getParameters();
         }
-    }
+}
 
     protected function extractFiles(BrowserKitRequest $request)
     {
@@ -250,7 +246,7 @@ class Guzzle extends Client
         $files = [];
         foreach ($requestFiles as $name => $info) {
             if (!empty($arrayName)) {
-                $name = $arrayName . '[' . $name . ']';
+                $name = $arrayName.'['.$name.']';
             }
 
             if (is_array($info)) {
