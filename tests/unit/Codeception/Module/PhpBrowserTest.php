@@ -609,7 +609,7 @@ class PhpBrowserTest extends TestsForBrowsers
         $this->expectException(TestRuntimeException::class);
         $this->expectExceptionMessage('Button is not inside a link or a form');
         $this->module->amOnPage('/form/button-not-in-form');
-        $this->module->click(['xpath' => '//input[@type="submit"][@form="form-id"]']);
+        $this->module->click('Submit 2');
     }
 
     public function testSubmitFormWithoutEmptyOptionsInSelect()

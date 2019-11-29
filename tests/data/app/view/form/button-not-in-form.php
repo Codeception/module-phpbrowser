@@ -9,7 +9,7 @@
 </div>
 
 <div>
-    <input type="submit" form="form-id" value="Submit 2" />
+    <input type="submit" value="Submit 2" />
 </div>
 </body>
 </html>
