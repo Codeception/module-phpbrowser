@@ -1416,7 +1416,7 @@ abstract class TestsForWeb extends \Codeception\Test\Unit
         $this->module->checkOption('#bmessage-topicslinks input[value="4"]');
         $this->module->click('Submit');
         $data = data::get('form');
-        $this->assertContains(4, $data['BMessage']['topicsLinks']);
+        $this->assertContains('4', $data['BMessage']['topicsLinks']);
     }
 
     /**
