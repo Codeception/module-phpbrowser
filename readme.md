@@ -2,7 +2,7 @@
 
 Codeception module for testing web application over HTTP
 
-[![Build Status](https://travis-ci.org/Codeception/module-phpbrowser.svg?branch=master)](https://travis-ci.org/Codeception/module-phpbrowser)
+![Build Status](https://github.com/Codeception/module-phpbrowser/workflows/CI/badge.svg)
 
 ## Installation
 
