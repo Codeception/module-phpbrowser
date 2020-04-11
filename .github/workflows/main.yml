@@ -32,4 +32,4 @@ jobs:
       run: |
         php -S 127.0.0.1:8000 -t tests/data/app >/dev/null 2>&1 &
         php -S 127.0.0.1:8010 -t tests/data/rest >/dev/null 2>&1 &
-        php ./vendor/bin/codecept run
+        php vendor/bin/codecept run
