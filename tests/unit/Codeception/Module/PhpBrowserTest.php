@@ -1,7 +1,7 @@
 <?php
 
 use Codeception\Exception\TestRuntimeException;
-use Codeception\Util\Stub;
+use Codeception\Stub;
 
 require_once 'tests/data/app/data.php';
 require_once __DIR__ . '/TestsForBrowsers.php';
@@ -21,7 +21,7 @@ class PhpBrowserTest extends TestsForBrowsers
 
     protected function _setUp()
     {
-        $container = \Codeception\Util\Stub::make('Codeception\Lib\ModuleContainer');
+        $container = Stub::make('Codeception\Lib\ModuleContainer');
         $this->module = new \Codeception\Module\PhpBrowser($container);
         $url = 'http://localhost:8000';
         $this->module->_setConfig(['url' => $url]);

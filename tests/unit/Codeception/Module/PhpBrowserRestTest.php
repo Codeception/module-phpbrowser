@@ -1,7 +1,7 @@
 <?php
 
 use Codeception\Test\Unit;
-use Codeception\Util\Stub;
+use Codeception\Stub;
 
 class PhpBrowserRestTest extends Unit
 {
@@ -17,7 +17,7 @@ class PhpBrowserRestTest extends Unit
 
     public function _setUp()
     {
-        $container = \Codeception\Util\Stub::make('Codeception\Lib\ModuleContainer');
+        $container = Stub::make('Codeception\Lib\ModuleContainer');
         $this->phpBrowser = new \Codeception\Module\PhpBrowser($container);
         $url = 'http://localhost:8010';
         $this->phpBrowser->_setConfig(['url' => $url]);
