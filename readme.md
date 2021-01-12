@@ -1,15 +1,24 @@
-# PhpBrowser
+# Codeception Module PhpBrowser
 
-Codeception module for testing web application over HTTP
+A Codeception module for testing web application over HTTP.
 
-![Build Status](https://github.com/Codeception/module-phpbrowser/workflows/CI/badge.svg)
+[![Actions Status](https://github.com/Codeception/module-phpbrowser/workflows/CI/badge.svg)](https://github.com/Codeception/module-phpbrowser/actions)
+[![Latest Stable Version](https://poser.pugx.org/codeception/module-phpbrowser/v/stable)](https://github.com/Codeception/module-phpbrowser/releases)
+[![Total Downloads](https://poser.pugx.org/codeception/module-phpbrowser/downloads)](https://packagist.org/packages/codeception/module-phpbrowser)
+[![License](https://poser.pugx.org/codeception/module-phpbrowser/license)](/LICENSE)
 
 ## Installation
 
 ```
-composer require --dev "codeception/module-phpbrowser"
+composer require "codeception/module-phpbrowser" --dev
 ```
 
 ## Documentation
 
-<a href="https://codeception.com/docs/modules/PhpBrowser">Module documentation</a>
+See [the module documentation](https://codeception.com/docs/modules/PhpBrowser).
+
+## License
+
+`Codeception Module PhpBrowser` is open-sourced software licensed under the [MIT](/LICENSE) License.
+
+© Codeception PHP Testing Framework
