@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use Codeception\Test\Unit;
 use Codeception\Stub;
 
-class PhpBrowserRestTest extends Unit
+final class PhpBrowserRestTest extends Unit
 {
     /**
      * @var \Codeception\Module\REST

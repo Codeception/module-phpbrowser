@@ -7,6 +7,10 @@ A Codeception module for testing web application over HTTP.
 [![Total Downloads](https://poser.pugx.org/codeception/module-phpbrowser/downloads)](https://packagist.org/packages/codeception/module-phpbrowser)
 [![License](https://poser.pugx.org/codeception/module-phpbrowser/license)](/LICENSE)
 
+## Requirements
+
+* `PHP 7.1` or higher.
+
 ## Installation
 
 ```

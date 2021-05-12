@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Codeception\Module;
 
 use Closure;
@@ -76,9 +79,14 @@ use GuzzleHttp\Client as GuzzleClient;
  */
 class PhpBrowser extends InnerBrowser implements Remote, MultiSession
 {
-
+    /**
+     * @var string[]
+     */
     protected $requiredFields = ['url'];
 
+    /**
+     * @var array
+     */
     protected $config = [
         'headers' => [],
         'verify' => false,
@@ -95,6 +103,9 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         'cookies' => true,
     ];
 
+    /**
+     * @var string[]
+     */
     protected $guzzleConfigFields = [
         'auth',
         'proxy',
@@ -143,17 +154,17 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
      * @param $name
      * @param $value
      */
-    public function setHeader($name, $value)
+    public function setHeader($name, $value): void
     {
         $this->haveHttpHeader($name, $value);
     }
 
-    public function amHttpAuthenticated($username, $password)
+    public function amHttpAuthenticated($username, $password): void
     {
         $this->client->setAuth($username, $password);
     }
 
-    public function amOnUrl($url)
+    public function amOnUrl($url): void
     {
         $host = Uri::retrieveHost($url);
         $config = $this->config;
@@ -167,11 +178,12 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->amOnPage($page);
     }
 
-    public function amOnSubdomain($subdomain)
+    public function amOnSubdomain($subdomain): void
     {
         $url = $this->config['url'];
-        $url = preg_replace('~(https?://)(.*\.)(.*\.)~', "$1$3", $url); // removing current subdomain
-        $url = preg_replace('~(https?://)(.*)~', "$1$subdomain.$2", $url); // inserting new
+        $url = preg_replace('#(https?://)(.*\.)(.*\.)#', "$1$3", $url); // removing current subdomain
+        $url = preg_replace('#(https?://)(.*)#', sprintf('$1%s.$2', $subdomain), $url);
+         // inserting new
         $config = $this->config;
         $config['url'] = $url;
         $this->_reconfigure($config);
@@ -193,20 +205,17 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
      * $I->executeInGuzzle(function (\GuzzleHttp\Client $client) {
      *      $client->get('/get', ['query' => ['foo' => 'bar']]);
      * });
-     * ?>
      * ```
      *
      * It is not recommended to use this command on a regular basis.
      * If Codeception lacks important Guzzle Client methods, implement them and submit patches.
      *
-     * @param Closure $function
      * @return mixed
      */
     public function executeInGuzzle(Closure $function)
     {
         return $function($this->guzzle);
     }
-
 
     public function _getResponseCode()
     {

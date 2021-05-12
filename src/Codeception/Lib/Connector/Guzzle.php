@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Codeception\Lib\Connector;
 
 use Aws\Credentials\Credentials;
@@ -14,22 +17,38 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use GuzzleHttp\Psr7\Uri as Psr7Uri;
-use Symfony\Component\BrowserKit\AbstractBrowser as Client;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\Request as BrowserKitRequest;
 use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 
-class Guzzle extends Client
+class Guzzle extends AbstractBrowser
 {
+    /**
+     * @var array
+     */
     protected $requestOptions = [
         'allow_redirects' => false,
         'headers'         => [],
     ];
+
+    /**
+     * @var int
+     */
     protected $refreshMaxInterval = 0;
 
+    /**
+     * @var \Aws\Credentials\Credentials|null
+     */
     protected $awsCredentials;
+
+    /**
+     * @var \Aws\Signature\SignatureV4|null
+     */
     protected $awsSignature;
 
-    /** @var GuzzleClient */
+    /**
+     * @var GuzzleClient
+     */
     protected $client;
 
     /**
@@ -43,14 +62,14 @@ class Guzzle extends Client
      *
      * @param int $seconds Number of seconds
      */
-    public function setRefreshMaxInterval($seconds)
+    public function setRefreshMaxInterval(int $seconds): void
     {
         $this->refreshMaxInterval = $seconds;
     }
 
-    public function setClient(GuzzleClient $client)
+    public function setClient(GuzzleClient $guzzleClient): void
     {
-        $this->client = $client;
+        $this->client = $guzzleClient;
     }
 
     /**
@@ -63,9 +82,9 @@ class Guzzle extends Client
      * @param string $name the name of the header
      * @param string $value the value of the header
      */
-    public function setHeader($name, $value)
+    public function setHeader(string $name, string $value): void
     {
-        if ((string)$value === '') {
+        if ($value === '') {
             $this->deleteHeader($name);
         } else {
             $this->requestOptions['headers'][$name] = $value;
@@ -78,19 +97,14 @@ class Guzzle extends Client
      *
      * @param string $name the name of the header to delete.
      */
-    public function deleteHeader($name)
+    public function deleteHeader(string $name): void
     {
         unset($this->requestOptions['headers'][$name]);
     }
 
-    /**
-     * @param string $username
-     * @param string $password
-     * @param string $type  Default: 'basic'
-     */
-    public function setAuth($username, $password, $type = 'basic')
+    public function setAuth(string $username, string $password, string $type = 'basic'): void
     {
-        if (!$username) {
+        if ($username === '') {
             unset($this->requestOptions['auth']);
             return;
         }
@@ -100,14 +114,12 @@ class Guzzle extends Client
     /**
      * Taken from Mink\BrowserKitDriver
      *
-     * @param Psr7Response $response
-     *
      * @return BrowserKitResponse
      */
-    protected function createResponse(Psr7Response $response)
+    protected function createResponse(Psr7Response $psr7Response): BrowserKitResponse
     {
-        $body = (string) $response->getBody();
-        $headers = $response->getHeaders();
+        $body = (string) $psr7Response->getBody();
+        $headers = $psr7Response->getHeaders();
 
         $contentType = null;
 
@@ -119,18 +131,18 @@ class Guzzle extends Client
         }
 
         if (strpos($contentType, 'charset=') === false) {
-            if (preg_match('/<meta[^>]+charset *= *["\']?([a-zA-Z\-0-9]+)/i', $body, $matches)) {
+            if (preg_match('#<meta[^>]+charset *= *["\']?([a-zA-Z\-0-9]+)#i', $body, $matches)) {
                 $contentType .= ';charset=' . $matches[1];
             }
             $headers['Content-Type'] = [$contentType];
         }
 
-        $status = $response->getStatusCode();
+        $status = $psr7Response->getStatusCode();
         if ($status < 300 || $status >= 400) {
             $matches = [];
 
             $matchesMeta = preg_match(
-                '/<meta[^>]+http-equiv="refresh" content="\s*(\d*)\s*;\s*url=(.*?)"/i',
+                '#<meta[^>]+http-equiv="refresh" content="\s*(\d*)\s*;\s*url=(.*?)"#i',
                 $body,
                 $matches
             );
@@ -138,7 +150,7 @@ class Guzzle extends Client
             if (!$matchesMeta && isset($headers['Refresh'])) {
                 // match by header
                 preg_match(
-                    '/^\s*(\d*)\s*;\s*url=(.*)/i',
+                    '#^\s*(\d*)\s*;\s*url=(.*)#i',
                     (string) reset($headers['Refresh']),
                     $matches
                 );
@@ -150,7 +162,7 @@ class Guzzle extends Client
 
                 if ($uri->withFragment('') !== $currentUri->withFragment('')) {
                     $status = 302;
-                    $headers['Location'] = $matchesMeta ? htmlspecialchars_decode($uri) : (string)$uri;
+                    $headers['Location'] = $matchesMeta ? htmlspecialchars_decode((string) $uri) : (string)$uri;
                 }
             }
         }
@@ -158,7 +170,7 @@ class Guzzle extends Client
         return new BrowserKitResponse($body, $status, $headers);
     }
 
-    public function getAbsoluteUri($uri)
+    protected function getAbsoluteUri($uri)
     {
         $baseUri = $this->client->getConfig('base_uri');
         if (strpos($uri, '://') === false && strpos($uri, '//') !== 0) {
@@ -172,7 +184,7 @@ class Guzzle extends Client
             }
             // relative url
             if (!$this->getHistory()->isEmpty()) {
-                return Uri::mergeUrls((string)$this->getHistory()->current()->getUri(), $uri);
+                return Uri::mergeUrls($this->getHistory()->current()->getUri(), $uri);
             }
         }
         return Uri::mergeUrls($baseUri, $uri);
@@ -214,7 +226,7 @@ class Guzzle extends Client
         return $this->createResponse($response);
     }
 
-    protected function extractHeaders(BrowserKitRequest $request)
+    protected function extractHeaders(BrowserKitRequest $request): array
     {
         $headers = [];
         $server = $request->getServer();
@@ -231,39 +243,37 @@ class Guzzle extends Client
         return $headers;
     }
 
-    protected function extractFormData(BrowserKitRequest $request)
+    protected function extractFormData(BrowserKitRequest $browserKitRequest): ?array
     {
-        if (!in_array(strtoupper($request->getMethod()), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+        if (!in_array(strtoupper($browserKitRequest->getMethod()), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             return null;
         }
 
         // guessing if it is a form data
-        $headers = $request->getServer();
-        if (isset($headers['HTTP_CONTENT_TYPE'])) {
-            // not a form
-            if ($headers['HTTP_CONTENT_TYPE'] !== 'application/x-www-form-urlencoded') {
-                return null;
-            }
-        }
-        if ($request->getContent() !== null) {
+        $headers = $browserKitRequest->getServer();
+        // not a form
+        if (isset($headers['HTTP_CONTENT_TYPE']) && $headers['HTTP_CONTENT_TYPE'] !== 'application/x-www-form-urlencoded') {
             return null;
         }
-        return $request->getParameters();
+        if ($browserKitRequest->getContent() !== null) {
+            return null;
+        }
+        return $browserKitRequest->getParameters();
     }
 
-    protected function extractMultipartFormData(BrowserKitRequest $request)
+    protected function extractMultipartFormData(BrowserKitRequest $browserKitRequest)
     {
-        if (!in_array(strtoupper($request->getMethod()), ['POST', 'PUT', 'PATCH'])) {
+        if (!in_array(strtoupper($browserKitRequest->getMethod()), ['POST', 'PUT', 'PATCH'])) {
             return [];
         }
 
-        $parts = $this->mapFiles($request->getFiles());
+        $parts = $this->mapFiles($browserKitRequest->getFiles());
         if (empty($parts)) {
             return [];
         }
 
-        foreach ($request->getParameters() as $k => $v) {
-            $parts = $this->formatMultipart($parts, $k, $v);
+        foreach ($browserKitRequest->getParameters() as $k => $parameter) {
+            $parts = $this->formatMultipart($parts, $k, $parameter);
         }
         return $parts;
     }
@@ -272,7 +282,7 @@ class Guzzle extends Client
     {
         if (is_array($value)) {
             foreach ($value as $subKey => $subValue) {
-                $parts = array_merge($this->formatMultipart([], $key."[$subKey]", $subValue), $parts);
+                $parts = array_merge($this->formatMultipart([], $key.sprintf('[%s]', $subKey), $subValue), $parts);
             }
             return $parts;
         }
@@ -280,7 +290,7 @@ class Guzzle extends Client
         return $parts;
     }
 
-    protected function mapFiles($requestFiles, $arrayName = '')
+    protected function mapFiles($requestFiles, $arrayName = ''): array
     {
         $files = [];
         foreach ($requestFiles as $name => $info) {
@@ -292,7 +302,7 @@ class Guzzle extends Client
                 if (isset($info['tmp_name'])) {
                     if ($info['tmp_name']) {
                         $handle = fopen($info['tmp_name'], 'rb');
-                        $filename = isset($info['name']) ? $info['name'] : null;
+                        $filename = $info['name'] ?? null;
                         $file = [
                             'name' => $name,
                             'contents' => $handle,
@@ -319,7 +329,7 @@ class Guzzle extends Client
         return $files;
     }
 
-    protected function extractCookies($host)
+    protected function extractCookies($host): \GuzzleHttp\Cookie\CookieJar
     {
         $jar = [];
         $cookies = $this->getCookieJar()->all();
@@ -333,7 +343,7 @@ class Guzzle extends Client
         return new CookieJar(false, $jar);
     }
 
-    public static function createHandler($handler)
+    public static function createHandler($handler): \GuzzleHttp\HandlerStack
     {
         if ($handler instanceof HandlerStack) {
             return $handler;
@@ -353,7 +363,7 @@ class Guzzle extends Client
         return HandlerStack::create();
     }
 
-    public function setAwsAuth($config)
+    public function setAwsAuth($config): void
     {
         $this->awsCredentials = new Credentials($config['key'], $config['secret']);
         $this->awsSignature = new SignatureV4($config['service'], $config['region']);
