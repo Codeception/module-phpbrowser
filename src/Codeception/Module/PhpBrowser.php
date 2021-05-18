@@ -150,11 +150,8 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
 
     /**
      * Alias to `haveHttpHeader`
-     *
-     * @param $name
-     * @param $value
      */
-    public function setHeader($name, $value): void
+    public function setHeader(string $name, string $value): void
     {
         $this->haveHttpHeader($name, $value);
     }
