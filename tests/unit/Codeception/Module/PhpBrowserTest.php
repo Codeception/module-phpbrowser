@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Codeception\Exception\TestRuntimeException;
 use Codeception\Stub;
 
@@ -10,7 +12,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\AssertionFailedError;
 
-class PhpBrowserTest extends TestsForBrowsers
+final class PhpBrowserTest extends TestsForBrowsers
 {
     /**
      * @var \Codeception\Module\PhpBrowser
@@ -405,7 +407,7 @@ class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeResponseCodeIs(200);
         $this->module->dontSee('Unauthorized');
         $this->module->see("Welcome, davert");
-        $this->module->amHttpAuthenticated(null, null);
+        $this->module->amHttpAuthenticated('', '');
         $this->module->amOnPage('/auth');
         $this->module->seeResponseCodeIs(401);
         $this->module->amHttpAuthenticated('davert', '123456');
