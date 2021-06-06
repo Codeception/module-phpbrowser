@@ -187,7 +187,7 @@ class Guzzle extends AbstractBrowser
                 return Uri::mergeUrls((string)$this->getHistory()->current()->getUri(), $uri);
             }
         }
-        return Uri::mergeUrls($baseUri, $uri);
+        return Uri::mergeUrls((string)$baseUri, $uri);
     }
 
     protected function doRequest($request)
