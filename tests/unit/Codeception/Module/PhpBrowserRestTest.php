@@ -133,13 +133,13 @@ final class PhpBrowserRestTest extends Unit
     public function testSeeResponseContainsJsonFailsGracefullyWhenJsonResultIsNotArray()
     {
         $this->shouldFail();
-        $this->setStubResponse(json_encode('no_status'));
+        $this->setStubResponse(json_encode('no_status', JSON_THROW_ON_ERROR));
         $this->module->seeResponseContainsJson(array('id' => 1));
     }
 
     public function testDontSeeResponseJsonMatchesJsonPathPassesWhenJsonResultIsNotArray()
     {
-        $this->setStubResponse(json_encode('no_status'));
+        $this->setStubResponse(json_encode('no_status', JSON_THROW_ON_ERROR));
         $this->module->dontSeeResponseJsonMatchesJsonPath('$.error');
     }
 

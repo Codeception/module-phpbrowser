@@ -176,7 +176,7 @@ class Guzzle extends AbstractBrowser
         if (strpos($uri, '://') === false && strpos($uri, '//') !== 0) {
             if (strpos($uri, '/') === 0) {
                 $baseUriPath = $baseUri->getPath();
-                if (!empty($baseUriPath) && strpos($uri, $baseUriPath) === 0) {
+                if (!empty($baseUriPath) && strpos($uri, (string) $baseUriPath) === 0) {
                     $uri = substr($uri, strlen($baseUriPath));
                 }
 
