@@ -21,6 +21,8 @@ composer require "codeception/module-phpbrowser" --dev
 
 See [the module documentation](https://codeception.com/docs/modules/PhpBrowser).
 
+[Changelog](https://github.com/Codeception/module-phpbrowser/releases)
+
 ## License
 
 `Codeception Module PhpBrowser` is open-sourced software licensed under the [MIT](/LICENSE) License.
