@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Codeception\Lib\Connector;
 
-use Aws\Credentials\Credentials;
-use Aws\Signature\SignatureV4;
+use Aws\Credentials\Credentials as AwsCredentials;
+use Aws\Signature\SignatureV4 as AwsSignatureV4;
 use Codeception\Util\Uri;
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\CookieJar as GuzzleCookieJar;
 use GuzzleHttp\Cookie\SetCookie;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\CurlHandler;
 use GuzzleHttp\Handler\StreamHandler;
-use GuzzleHttp\HandlerStack;
+use GuzzleHttp\HandlerStack as GuzzleHandlerStack;
 use GuzzleHttp\Psr7\Request as Psr7Request;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use GuzzleHttp\Psr7\Uri as Psr7Uri;
@@ -23,33 +23,18 @@ use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 
 class Guzzle extends AbstractBrowser
 {
-    /**
-     * @var array
-     */
-    protected $requestOptions = [
+    protected array $requestOptions = [
         'allow_redirects' => false,
         'headers'         => [],
     ];
 
-    /**
-     * @var int
-     */
-    protected $refreshMaxInterval = 0;
+    protected int $refreshMaxInterval = 0;
 
-    /**
-     * @var \Aws\Credentials\Credentials|null
-     */
-    protected $awsCredentials;
+    protected ?AwsCredentials $awsCredentials = null;
 
-    /**
-     * @var \Aws\Signature\SignatureV4|null
-     */
-    protected $awsSignature;
+    protected ?AwsSignatureV4 $awsSignature = null;
 
-    /**
-     * @var GuzzleClient
-     */
-    protected $client;
+    protected ?GuzzleClient $client = null;
 
     /**
      * Sets the maximum allowable timeout interval for a meta tag refresh to
@@ -108,13 +93,12 @@ class Guzzle extends AbstractBrowser
             unset($this->requestOptions['auth']);
             return;
         }
+
         $this->requestOptions['auth'] = [$username, $password, $type];
     }
 
     /**
      * Taken from Mink\BrowserKitDriver
-     *
-     * @return BrowserKitResponse
      */
     protected function createResponse(Psr7Response $psr7Response): BrowserKitResponse
     {
@@ -126,6 +110,7 @@ class Guzzle extends AbstractBrowser
         if (isset($headers['Content-Type'])) {
             $contentType = reset($headers['Content-Type']);
         }
+
         if (!$contentType) {
             $contentType = 'text/html';
         }
@@ -134,6 +119,7 @@ class Guzzle extends AbstractBrowser
             if (preg_match('#<meta[^>]+charset *= *["\']?([a-zA-Z\-0-9]+)#i', $body, $matches)) {
                 $contentType .= ';charset=' . $matches[1];
             }
+
             $headers['Content-Type'] = [$contentType];
         }
 
@@ -182,17 +168,19 @@ class Guzzle extends AbstractBrowser
 
                 return Uri::appendPath((string)$baseUri, $uri);
             }
+
             // relative url
             if (!$this->getHistory()->isEmpty()) {
                 return Uri::mergeUrls((string)$this->getHistory()->current()->getUri(), $uri);
             }
         }
+
         return Uri::mergeUrls((string)$baseUri, $uri);
     }
 
     protected function doRequest($request)
     {
-        /** @var $request BrowserKitRequest  **/
+        /** @var $request BrowserKitRequest **/
         $guzzleRequest = new Psr7Request(
             $request->getMethod(),
             $request->getUri(),
@@ -217,15 +205,20 @@ class Guzzle extends AbstractBrowser
             } else {
                 $response = $this->client->send($guzzleRequest, $options);
             }
-        } catch (RequestException $e) {
-            if (!$e->hasResponse()) {
-                throw $e;
+        } catch (RequestException $exception) {
+            if (!$exception->hasResponse()) {
+                throw $exception;
             }
-            $response = $e->getResponse();
+
+            $response = $exception->getResponse();
         }
+
         return $this->createResponse($response);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function extractHeaders(BrowserKitRequest $request): array
     {
         $headers = [];
@@ -240,6 +233,7 @@ class Guzzle extends AbstractBrowser
                 $headers[$header] = $val;
             }
         }
+
         return $headers;
     }
 
@@ -255,9 +249,11 @@ class Guzzle extends AbstractBrowser
         if (isset($headers['HTTP_CONTENT_TYPE']) && $headers['HTTP_CONTENT_TYPE'] !== 'application/x-www-form-urlencoded') {
             return null;
         }
+
         if ($browserKitRequest->getContent() !== null) {
             return null;
         }
+
         return $browserKitRequest->getParameters();
     }
 
@@ -275,6 +271,7 @@ class Guzzle extends AbstractBrowser
         foreach ($browserKitRequest->getParameters() as $k => $parameter) {
             $parts = $this->formatMultipart($parts, $k, $parameter);
         }
+
         return $parts;
     }
 
@@ -284,8 +281,10 @@ class Guzzle extends AbstractBrowser
             foreach ($value as $subKey => $subValue) {
                 $parts = array_merge($this->formatMultipart([], $key.sprintf('[%s]', $subKey), $subValue), $parts);
             }
+
             return $parts;
         }
+
         $parts[] = ['name' => $key, 'contents' => (string) $value];
         return $parts;
     }
@@ -313,6 +312,7 @@ class Guzzle extends AbstractBrowser
                                 'content-type' => $info['type']
                             ];
                         }
+
                         $files[] = $file;
                     }
                 } else {
@@ -329,7 +329,7 @@ class Guzzle extends AbstractBrowser
         return $files;
     }
 
-    protected function extractCookies($host): \GuzzleHttp\Cookie\CookieJar
+    protected function extractCookies($host): GuzzleCookieJar
     {
         $jar = [];
         $cookies = $this->getCookieJar()->all();
@@ -338,34 +338,41 @@ class Guzzle extends AbstractBrowser
             if (!$setCookie->getDomain()) {
                 $setCookie->setDomain($host);
             }
+
             $jar[] = $setCookie;
         }
-        return new CookieJar(false, $jar);
+
+        return new GuzzleCookieJar(false, $jar);
     }
 
-    public static function createHandler($handler): \GuzzleHttp\HandlerStack
+    public static function createHandler($handler): GuzzleHandlerStack
     {
-        if ($handler instanceof HandlerStack) {
+        if ($handler instanceof GuzzleHandlerStack) {
             return $handler;
         }
+
         if ($handler === 'curl') {
-            return HandlerStack::create(new CurlHandler());
+            return GuzzleHandlerStack::create(new CurlHandler());
         }
+
         if ($handler === 'stream') {
-            return HandlerStack::create(new StreamHandler());
+            return GuzzleHandlerStack::create(new StreamHandler());
         }
+
         if (is_string($handler) && class_exists($handler)) {
-            return HandlerStack::create(new $handler);
+            return GuzzleHandlerStack::create(new $handler);
         }
+
         if (is_callable($handler)) {
-            return HandlerStack::create($handler);
+            return GuzzleHandlerStack::create($handler);
         }
-        return HandlerStack::create();
+
+        return GuzzleHandlerStack::create();
     }
 
     public function setAwsAuth($config): void
     {
-        $this->awsCredentials = new Credentials($config['key'], $config['secret']);
-        $this->awsSignature = new SignatureV4($config['service'], $config['region']);
+        $this->awsCredentials = new AwsCredentials($config['key'], $config['secret']);
+        $this->awsSignature = new AwsSignatureV4($config['service'], $config['region']);
     }
 }

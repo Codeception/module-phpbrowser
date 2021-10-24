@@ -14,7 +14,7 @@ use Codeception\Util\Uri;
 use GuzzleHttp\Client as GuzzleClient;
 
 /**
- * Uses [Guzzle](http://guzzlephp.org/) to interact with your application over CURL.
+ * Uses [Guzzle](https://docs.guzzlephp.org/en/stable/) to interact with your application over CURL.
  * Module works over CURL and requires **PHP CURL extension** to be enabled.
  *
  * Use to perform web acceptance tests with non-javascript browser.
@@ -106,7 +106,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
     /**
      * @var string[]
      */
-    protected $guzzleConfigFields = [
+    protected array $guzzleConfigFields = [
         'auth',
         'proxy',
         'verify',
@@ -125,10 +125,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
      */
     public $client;
 
-    /**
-     * @var GuzzleClient
-     */
-    public $guzzle;
+    public ?GuzzleClient $guzzle = null;
 
     public function _initialize()
     {
@@ -140,6 +137,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         if (!$this->client) {
             $this->client = new Guzzle();
         }
+
         $this->_prepareSession();
     }
 
@@ -171,6 +169,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         if ($page === '') {
             $page = '/';
         }
+
         $this->debugSection('Host', $host);
         $this->amOnPage($page);
     }
@@ -214,6 +213,9 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         return $function($this->guzzle);
     }
 
+    /**
+     * @return int|string
+     */
     public function _getResponseCode()
     {
         return $this->getResponseStatusCode();
@@ -226,7 +228,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->_prepareSession();
     }
 
-    public function _prepareSession()
+    public function _prepareSession(): void
     {
         $defaults = array_intersect_key($this->config, array_flip($this->guzzleConfigFields));
         $curlOptions = [];
@@ -248,6 +250,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
                 $handler->push($middleware);
             }
         }
+
         $defaults['handler'] = $handler;
         $this->guzzle = new GuzzleClient($defaults);
 
