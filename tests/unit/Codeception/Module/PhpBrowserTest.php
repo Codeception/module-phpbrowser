@@ -2,34 +2,41 @@
 
 declare(strict_types=1);
 
+use Codeception\Configuration as CodeceptConfig;
+use Codeception\Exception\ElementNotFound;
+use Codeception\Exception\ModuleException;
 use Codeception\Exception\TestRuntimeException;
+use Codeception\Lib\Connector\Guzzle;
+use Codeception\Lib\ModuleContainer;
+use Codeception\Module\PhpBrowser;
 use Codeception\Stub;
 
 require_once 'tests/data/app/data.php';
 require_once __DIR__ . '/TestsForBrowsers.php';
 
+use Codeception\Test\Cept;
+use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack as GuzzleHandlerStack;
+use GuzzleHttp\Middleware as GuzzleMiddleware;
 use GuzzleHttp\Psr7\Response;
-use PHPUnit\Framework\AssertionFailedError;
+use Symfony\Component\BrowserKit\Cookie;
 
 final class PhpBrowserTest extends TestsForBrowsers
 {
-    /**
-     * @var \Codeception\Module\PhpBrowser
-     */
-    protected $module;
+    protected PhpBrowser $module;
 
-    protected $history = [];
+    protected array $history = [];
 
     protected function _setUp()
     {
-        $container = Stub::make('Codeception\Lib\ModuleContainer');
-        $this->module = new \Codeception\Module\PhpBrowser($container);
+        $container = Stub::make(ModuleContainer::class);
+        $this->module = new PhpBrowser($container);
         $url = 'http://localhost:8000';
         $this->module->_setConfig(['url' => $url]);
         $this->module->_initialize();
         $this->module->_before($this->makeTest());
-        $this->module->guzzle->getConfig('handler')->push(\GuzzleHttp\Middleware::history($this->history));
+        $this->module->guzzle->getConfig('handler')->push(GuzzleMiddleware::history($this->history));
 
     }
 
@@ -47,12 +54,16 @@ final class PhpBrowserTest extends TestsForBrowsers
         if ($this->module) {
             $this->module->_after($this->makeTest());
         }
+
         data::clean();
     }
 
+    /**
+     * @return \\Codeception\Test\Cept&\PHPUnit\Framework\MockObject\MockObject
+     */
     protected function makeTest()
     {
-        return Stub::makeEmpty('\Codeception\Test\Cept');
+        return Stub::makeEmpty(Cept::class);
     }
 
     public function testAjax()
@@ -61,7 +72,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->sendAjaxGetRequest('/info');
         $this->assertNotNull(data::get('ajax'));
 
-        $this->module->sendAjaxPostRequest('/form/complex', array('show' => 'author'));
+        $this->module->sendAjaxPostRequest('/form/complex', ['show' => 'author']);
         $this->assertNotNull(data::get('ajax'));
         $post = data::get('form');
         $this->assertEquals('author', $post['show']);
@@ -79,8 +90,8 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->amOnPage('/');
         $testName="debugPhpBrowser";
         $this->module->makeHtmlSnapshot($testName);
-        $this->assertFileExists(\Codeception\Configuration::outputDir().'debug/'.$testName.'.html');
-        @unlink(\Codeception\Configuration::outputDir().'debug/'.$testName.'.html');
+        $this->assertFileExists(CodeceptConfig::outputDir().'debug/'.$testName.'.html');
+        @unlink(CodeceptConfig::outputDir().'debug/'.$testName.'.html');
     }
 
     /**
@@ -146,7 +157,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     {
         $I = $this->module;
         $I->amOnPage('/search');
-        $I->submitForm('form', array('searchQuery' => 'test'));
+        $I->submitForm('form', ['searchQuery' => 'test']);
         $I->see('Success');
     }
 
@@ -200,6 +211,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     {
         $this->module->amOnPage('/redirect4');
         $this->module->seeInCurrentUrl('/search?ln=test@gmail.com&sn=testnumber');
+
         $params = data::get('params');
         $this->assertContains('test@gmail.com', $params);
     }
@@ -265,11 +277,11 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->client->setMaxRedirects(1);
         try {
             $this->module->amOnPage('/redirect_twice');
-            $this->assertTrue(false, 'redirect limit is not respected');
-        } catch (\LogicException $e) {
+            $this->fail('redirect limit is not respected');
+        } catch (LogicException $exception) {
             $this->assertEquals(
                 'The maximum number (1) of redirections was reached.',
-                $e->getMessage(),
+                $exception->getMessage(),
                 'redirect limit is respected'
             );
         }
@@ -299,8 +311,9 @@ final class PhpBrowserTest extends TestsForBrowsers
                 new Response(200, [], 'Cool stuff')
             ])
         ]);
-        /** @var \GuzzleHttp\HandlerStack $handlerStack */
+        /** @var GuzzleHandlerStack $handlerStack */
         $this->module->amOnUrl('http://fictional.redirector/redirect-to?url=//example.org/');
+
         $currentUrl = $this->module->client->getHistory()->current()->getUri();
         $this->assertSame('http://example.org/', $currentUrl);
     }
@@ -335,9 +348,9 @@ final class PhpBrowserTest extends TestsForBrowsers
     {
         $this->module->amOnPage('/form/example3');
         $this->module->seeElement('form');
-        $this->module->submitForm('form', array(
+        $this->module->submitForm('form', [
                 'name' => 'jon',
-        ));
+        ]);
         $form = data::get('form');
         $this->assertEquals('jon', $form['name']);
         $this->module->seeCurrentUrlEquals('/form/example3?validate=yes');
@@ -368,13 +381,14 @@ final class PhpBrowserTest extends TestsForBrowsers
 
     public function testCurlOptions()
     {
-        $this->module->_setConfig(array('url' => 'http://google.com', 'curl' => array('CURLOPT_NOBODY' => true)));
+        $this->module->_setConfig(['url' => 'http://google.com', 'curl' => ['CURLOPT_NOBODY' => true]]);
         $this->module->_initialize();
         if (method_exists($this->module->guzzle, 'getConfig')) {
             $config = $this->module->guzzle->getConfig();
         } else {
             $config = $this->module->guzzle->getDefaultOption('config');
         }
+
         $this->assertArrayHasKey('curl', $config);
         $this->assertArrayHasKey(CURLOPT_NOBODY, $config['curl']);
     }
@@ -382,13 +396,14 @@ final class PhpBrowserTest extends TestsForBrowsers
 
     public function testCurlSslOptions()
     {
-        $this->module->_setConfig(array(
+        $this->module->_setConfig([
             'url' => 'https://github.com',
-            'curl' => array(
+            'curl' => [
                 'CURLOPT_NOBODY' => true,
                 'CURLOPT_SSL_CIPHER_LIST' => 'TLSv1',
-            )));
+            ]]);
         $this->module->_initialize();
+
         $config = $this->module->guzzle->getConfig();
 
         $this->assertArrayHasKey('curl', $config);
@@ -417,7 +432,7 @@ final class PhpBrowserTest extends TestsForBrowsers
 
     public function testRawGuzzle()
     {
-        $code = $this->module->executeInGuzzle(function (\GuzzleHttp\Client $client) {
+        $code = $this->module->executeInGuzzle(function (GuzzleClient $client): int {
             $res = $client->get('/info');
             return $res->getStatusCode();
         });
@@ -457,7 +472,8 @@ final class PhpBrowserTest extends TestsForBrowsers
     {
         $I = $this->module;
         $I->amOnPage('/register');
-        $I->submitForm('form', array('test' => 'test'));
+        $I->submitForm('form', ['test' => 'test']);
+
         $formUrl = $this->module->client->getHistory()->current()->getUri();
         $formPath = parse_url($formUrl)['path'];
         $this->assertEquals($formPath, '/register');
@@ -465,7 +481,7 @@ final class PhpBrowserTest extends TestsForBrowsers
 
     public function testFillFieldWithoutPage()
     {
-        $this->expectException("\\Codeception\\Exception\\ModuleException");
+        $this->expectException(ModuleException::class);
         $this->module->fillField('#name', 'Nothing special');
     }
 
@@ -493,12 +509,13 @@ final class PhpBrowserTest extends TestsForBrowsers
         $mock = new MockHandler([
             new Response(200, ['X-Foo' => 'Bar']),
         ]);
-        $handler = \GuzzleHttp\HandlerStack::create($mock);
-        $handler->push(\GuzzleHttp\Middleware::history($this->history));
-        $client = new \GuzzleHttp\Client(['handler' => $handler, 'base_uri' => 'http://codeception.com']);
-        $guzzleConnector = new \Codeception\Lib\Connector\Guzzle();
+        $handler = GuzzleHandlerStack::create($mock);
+        $handler->push(GuzzleMiddleware::history($this->history));
+
+        $client = new GuzzleClient(['handler' => $handler, 'base_uri' => 'http://codeception.com']);
+        $guzzleConnector = new Guzzle();
         $guzzleConnector->setClient($client);
-        $guzzleConnector->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie('hello', 'world'));
+        $guzzleConnector->getCookieJar()->set(new Cookie('hello', 'world'));
         $guzzleConnector->request('GET', 'http://codeception.com/');
         $this->assertArrayHasKey('cookies', $this->history[0]['options']);
         /** @var $cookie GuzzleHttp\Cookie\SetCookie  **/
@@ -528,6 +545,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->amOnPage('/cookies');
         $this->module->seeCurrentUrlEquals('/info');
     }
+
     /**
      * @issue https://github.com/Codeception/Codeception/issues/2234
      */
@@ -543,7 +561,7 @@ final class PhpBrowserTest extends TestsForBrowsers
 
     public function testRequestApi()
     {
-        $this->expectException('Codeception\Exception\ModuleException');
+        $this->expectException(ModuleException::class);
         $response = $this->module->_request('POST', '/form/try', ['user' => 'davert']);
         $data = data::get('form');
         $this->assertEquals('davert', $data['user']);
@@ -568,7 +586,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     public function testClickFailure()
     {
         $this->module->amOnPage('/info');
-        $this->expectException('Codeception\Exception\ElementNotFound');
+        $this->expectException(ElementNotFound::class);
         $this->expectExceptionMessage("'Sign In!' is invalid CSS and XPath selector and Link or Button element with 'name=Sign In!' was not found");
         $this->module->click('Sign In!');
     }
@@ -630,6 +648,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->selectOption('select_name', 'two');
         $this->module->fillField('search_name', 'searchterm');
         $this->module->click('Submit');
+
         $params = data::get('query');
         $this->assertEquals('two', $params['select_name']);
         $this->assertEquals('searchterm', $params['search_name']);
@@ -637,7 +656,7 @@ final class PhpBrowserTest extends TestsForBrowsers
 
     public function testGrabPageSourceWhenNotOnPage()
     {
-        $this->expectException('\Codeception\Exception\ModuleException');
+        $this->expectException(ModuleException::class);
         $this->expectExceptionMessage('Page not loaded. Use `$I->amOnPage` (or hidden API methods `_request` and `_loadPage`) to open it');
         $this->module->grabPageSource();
     }
@@ -684,6 +703,7 @@ HTML
         $this->module->_initialize();
 
         $this->module->amOnPage('/user-agent');
+
         $response = $this->module->grabPageSource();
         $this->assertEquals('Codeception User Agent Test 1.0', $response, 'Incorrect user agent');
     }
@@ -732,6 +752,7 @@ HTML
         $this->module->amOnPage('/form/bug5547');
         $this->module->selectOption('#_payment_type', 'qwerty');
         $this->module->click('Submit');
+
         $form = data::get('form');
         $this->assertEquals('qwerty', $form['payment_type']);
     }

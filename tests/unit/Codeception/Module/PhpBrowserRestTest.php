@@ -2,42 +2,44 @@
 
 declare(strict_types=1);
 
+use Codeception\Lib\ModuleContainer;
+use Codeception\Module\PhpBrowser;
+use Codeception\Module\REST;
+use Codeception\Test\Cest;
 use Codeception\Test\Unit;
 use Codeception\Stub;
+use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\ExpectationFailedException;
+use Symfony\Component\BrowserKit\Request as SymfonyRequest;
 
 final class PhpBrowserRestTest extends Unit
 {
-    /**
-     * @var \Codeception\Module\REST
-     */
-    protected $module;
+    protected REST $module;
 
-    /**
-     * @var \Codeception\Module\PhpBrowser
-     */
-    protected $phpBrowser;
+    protected ?PhpBrowser $phpBrowser = null;
 
-    public function _setUp()
+    protected function _setUp()
     {
-        $container = Stub::make('Codeception\Lib\ModuleContainer');
-        $this->phpBrowser = new \Codeception\Module\PhpBrowser($container);
+        $container = Stub::make(ModuleContainer::class);
+        $this->phpBrowser = new PhpBrowser($container);
         $url = 'http://localhost:8010';
         $this->phpBrowser->_setConfig(['url' => $url]);
         $this->phpBrowser->_initialize();
 
-        $this->module = Stub::make('\Codeception\Module\REST');
+        $this->module = Stub::make(REST::class);
         $this->module->_inject($this->phpBrowser);
         $this->module->_initialize();
-        $this->module->_before(Stub::makeEmpty('\Codeception\Test\Cest'));
-        $this->phpBrowser->_before(Stub::makeEmpty('\Codeception\Test\Cest'));
+        $this->module->_before(Stub::makeEmpty(Cest::class));
+        
+        $this->phpBrowser->_before(Stub::makeEmpty(Cest::class));
     }
 
     private function setStubResponse($response)
     {
-        $this->phpBrowser = Stub::make('\Codeception\Module\PhpBrowser', ['_getResponseContent' => $response]);
+        $this->phpBrowser = Stub::make(PhpBrowser::class, ['_getResponseContent' => $response]);
         $this->module->_inject($this->phpBrowser);
         $this->module->_initialize();
-        $this->module->_before(Stub::makeEmpty('\Codeception\Test\Cest'));
+        $this->module->_before(Stub::makeEmpty(Cest::class));
     }
 
     public function testGet()
@@ -74,7 +76,7 @@ final class PhpBrowserRestTest extends Unit
 
     public function testInvalidJson()
     {
-        $this->expectException('PHPUnit\Framework\ExpectationFailedException');
+        $this->expectException(ExpectationFailedException::class);
         $this->setStubResponse('{xxx = yyy}');
         $this->module->seeResponseIsJson();
     }
@@ -90,7 +92,7 @@ final class PhpBrowserRestTest extends Unit
 
     public function testInvalidXml()
     {
-        $this->expectException('PHPUnit\Framework\ExpectationFailedException');
+        $this->expectException(ExpectationFailedException::class);
         $this->setStubResponse('<xml><name>John</surname></xml>');
         $this->module->seeResponseIsXml();
     }
@@ -105,7 +107,7 @@ final class PhpBrowserRestTest extends Unit
         $this->module->seeResponseContainsJson(['user' => ['name' => 'Davert']]);
         $this->module->seeResponseContainsJson(['ticket' => ['title' => 'Bug should be fixed']]);
         $this->module->seeResponseContainsJson(['ticket' => ['user' => ['name' => 'Davert']]]);
-        $this->module->seeResponseContainsJson(array('ticket' => array('labels' => null)));
+        $this->module->seeResponseContainsJson(['ticket' => ['labels' => null]]);
     }
 
     public function testSeeInJsonCollection()
@@ -115,8 +117,8 @@ final class PhpBrowserRestTest extends Unit
             . '{"user":"John Doe","age":27,"tags":["web-dev","java"]}]'
         );
         $this->module->seeResponseIsJson();
-        $this->module->seeResponseContainsJson(array('tags' => array('web-dev', 'java')));
-        $this->module->seeResponseContainsJson(array('user' => 'John Doe', 'age' => 27));
+        $this->module->seeResponseContainsJson(['tags' => ['web-dev', 'java']]);
+        $this->module->seeResponseContainsJson(['user' => 'John Doe', 'age' => 27]);
     }
 
     public function testArrayJson()
@@ -124,7 +126,7 @@ final class PhpBrowserRestTest extends Unit
         $this->setStubResponse(
             '[{"id":1,"title": "Bug should be fixed"},{"title": "Feature should be implemented","id":2}]'
         );
-        $this->module->seeResponseContainsJson(array('id' => 1));
+        $this->module->seeResponseContainsJson(['id' => 1]);
     }
 
     /**
@@ -134,7 +136,7 @@ final class PhpBrowserRestTest extends Unit
     {
         $this->shouldFail();
         $this->setStubResponse(json_encode('no_status', JSON_THROW_ON_ERROR));
-        $this->module->seeResponseContainsJson(array('id' => 1));
+        $this->module->seeResponseContainsJson(['id' => 1]);
     }
 
     public function testDontSeeResponseJsonMatchesJsonPathPassesWhenJsonResultIsNotArray()
@@ -147,16 +149,16 @@ final class PhpBrowserRestTest extends Unit
     {
         $this->setStubResponse('{"ticket": {"title": "Bug should be fixed", "user": {"name": "Davert"}}}');
         $this->module->seeResponseIsJson();
-        $this->module->dontSeeResponseContainsJson(array('name' => 'Davet'));
-        $this->module->dontSeeResponseContainsJson(array('user' => array('name' => 'Davet')));
-        $this->module->dontSeeResponseContainsJson(array('user' => array('title' => 'Bug should be fixed')));
+        $this->module->dontSeeResponseContainsJson(['name' => 'Davet']);
+        $this->module->dontSeeResponseContainsJson(['user' => ['name' => 'Davet']]);
+        $this->module->dontSeeResponseContainsJson(['user' => ['title' => 'Bug should be fixed']]);
     }
 
     public function testApplicationJsonIncludesJsonAsContent()
     {
         $this->module->haveHttpHeader('Content-Type', 'application/json');
-        $this->module->sendPOST('/', array('name' => 'john'));
-        /** @var $request \Symfony\Component\BrowserKit\Request  **/
+        $this->module->sendPOST('/', ['name' => 'john']);
+        /** @var $request SymfonyRequest **/
         $request = $this->module->client->getRequest();
         $this->assertContains('application/json', $request->getServer());
         $server = $request->getServer();
@@ -171,8 +173,8 @@ final class PhpBrowserRestTest extends Unit
     public function testApplicationJsonHeaderCheckIsCaseInsensitive()
     {
         $this->module->haveHttpHeader('content-type', 'application/json');
-        $this->module->sendPOST('/', array('name' => 'john'));
-        /** @var $request \Symfony\Component\BrowserKit\Request  **/
+        $this->module->sendPOST('/', ['name' => 'john']);
+        /** @var $request SymfonyRequest  **/
         $request = $this->module->client->getRequest();
         $server = $request->getServer();
         $this->assertEquals('application/json', $server['HTTP_CONTENT_TYPE']);
@@ -183,8 +185,8 @@ final class PhpBrowserRestTest extends Unit
     public function testGetApplicationJsonNotIncludesJsonAsContent()
     {
         $this->module->haveHttpHeader('Content-Type', 'application/json');
-        $this->module->sendGET('/', array('name' => 'john'));
-        /** @var $request \Symfony\Component\BrowserKit\Request  **/
+        $this->module->sendGET('/', ['name' => 'john']);
+        /** @var $request SymfonyRequest  **/
         $request = $this->module->client->getRequest();
         $this->assertNull($request->getContent());
         $this->assertContains('john', $request->getParameters());
@@ -196,25 +198,26 @@ final class PhpBrowserRestTest extends Unit
      */
     public function testTwoTests()
     {
-        $cest1 = Stub::makeEmpty('\Codeception\Test\Cest');
-        $cest2 = Stub::makeEmpty('\Codeception\Test\Cest');
+        $cest1 = Stub::makeEmpty(Cest::class);
+        $cest2 = Stub::makeEmpty(Cest::class);
 
         $this->module->sendGET('/rest/user/');
         $this->module->seeResponseIsJson();
         $this->module->seeResponseContains('davert');
-        $this->module->seeResponseContainsJson(array('name' => 'davert'));
+        $this->module->seeResponseContainsJson(['name' => 'davert']);
         $this->module->seeResponseCodeIs(200);
         $this->module->dontSeeResponseCodeIs(404);
-        
+
         $this->phpBrowser->_after($cest1);
         $this->module->_after($cest1);
         $this->module->_before($cest2);
+
         $this->phpBrowser->_before($cest2);
-        
+
         $this->module->sendGET('/rest/user/');
         $this->module->seeResponseIsJson();
         $this->module->seeResponseContains('davert');
-        $this->module->seeResponseContainsJson(array('name' => 'davert'));
+        $this->module->seeResponseContainsJson(['name' => 'davert']);
         $this->module->seeResponseCodeIs(200);
         $this->module->dontSeeResponseCodeIs(404);
     }
@@ -297,7 +300,7 @@ final class PhpBrowserRestTest extends Unit
 
     protected function shouldFail()
     {
-        $this->expectException('PHPUnit\Framework\AssertionFailedError');
+        $this->expectException(AssertionFailedError::class);
     }
 
     public function testGrabFromCurrentUrl()
