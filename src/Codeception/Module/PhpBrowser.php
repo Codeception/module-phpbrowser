@@ -221,7 +221,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         return $this->getResponseStatusCode();
     }
 
-    public function _initializeSession(): void
+    public function _initializeSession()
     {
         // independent sessions need independent cookies
         $this->client = new Guzzle();
@@ -258,7 +258,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->client->setClient($this->guzzle);
     }
 
-    public function _backupSession(): array
+    public function _backupSession()
     {
         return [
             'client' => $this->client,
@@ -268,14 +268,14 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         ];
     }
 
-    public function _loadSession($session): void
+    public function _loadSession($session)
     {
         foreach ($session as $key => $val) {
             $this->$key = $val;
         }
     }
 
-    public function _closeSession($session = null): void
+    public function _closeSession($session = null)
     {
         unset($session);
     }
