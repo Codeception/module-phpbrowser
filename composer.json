@@ -18,16 +18,16 @@
         "php": "^7.4 | ^8.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.3",
-        "codeception/lib-innerbrowser": "^1.5 | *@dev",
-        "codeception/codeception": "^4.0 | *@dev"
+        "codeception/lib-innerbrowser": "2.1.*@dev",
+        "codeception/codeception": "^5.0 | *@dev"
     },
     "require-dev": {
         "ext-curl": "*",
         "aws/aws-sdk-php": "^3.199",
-        "codeception/module-rest": "^1.3 | *@dev"
+        "codeception/module-rest": "2.1.*@dev"
     },
     "conflict": {
-        "codeception/codeception": "<4.0"
+        "codeception/codeception": "<5.0"
     },
     "suggest": {
         "codeception/phpbuiltinserver": "Start and stop PHP built-in web server for your tests"
