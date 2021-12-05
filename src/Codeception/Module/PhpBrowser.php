@@ -12,6 +12,7 @@ use Codeception\Lib\Interfaces\Remote;
 use Codeception\TestInterface;
 use Codeception\Util\Uri;
 use GuzzleHttp\Client as GuzzleClient;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 
 /**
  * Uses [Guzzle](https://docs.guzzlephp.org/en/stable/) to interact with your application over CURL.
@@ -123,7 +124,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
     /**
      * @var Guzzle
      */
-    public $client;
+    public ?AbstractBrowser $client = null;
 
     public ?GuzzleClient $guzzle = null;
 
