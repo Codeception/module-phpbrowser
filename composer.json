@@ -18,7 +18,7 @@
         "php": "^7.4 | ^8.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.3",
-        "codeception/lib-innerbrowser": "^1.5 | *@dev",
+        "codeception/lib-innerbrowser": "^2.0 | *@dev",
         "codeception/codeception": "^4.0 | *@dev"
     },
     "require-dev": {
