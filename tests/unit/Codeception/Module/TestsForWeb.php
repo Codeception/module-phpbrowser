@@ -1212,7 +1212,7 @@ abstract class TestsForWeb extends Unit
     public function testSelectTwoSubmitsByText()
     {
         $this->module->amOnPage('/form/select_two_submits');
-        $this->module->selectOption('What kind of sandwich would you like?', 2);
+        $this->module->selectOption('What kind of sandwich would you like?', '2');
         $this->module->click('Save');
 
         $form = data::get('form');
