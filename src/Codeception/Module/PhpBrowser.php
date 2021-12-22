@@ -122,9 +122,9 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
     ];
 
     /**
-     * @var Guzzle
+     * @var AbstractBrowser
      */
-    public ?AbstractBrowser $client = null;
+    public $client = null;
 
     public ?GuzzleClient $guzzle = null;
 
