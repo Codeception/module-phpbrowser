@@ -13,13 +13,13 @@
             "name": "Gintautas Miselis"
         }
     ],
-    "minimum-stability": "RC",
+    "minimum-stability": "dev",
     "require": {
-        "php": "^7.4 | ^8.0",
+        "php": "^8.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.4",
         "codeception/lib-innerbrowser": "^2.0 | *@dev",
-        "codeception/codeception": "^4.1 | *@dev"
+        "codeception/codeception": "^5.0.0-alpha1"
     },
     "require-dev": {
         "ext-curl": "*",
@@ -27,7 +27,7 @@
         "codeception/module-rest": "^2.0 | *@dev"
     },
     "conflict": {
-        "codeception/codeception": "<4.1"
+        "codeception/codeception": "<5.0"
     },
     "suggest": {
         "codeception/phpbuiltinserver": "Start and stop PHP built-in web server for your tests"
