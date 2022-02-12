@@ -83,12 +83,12 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
     /**
      * @var string[]
      */
-    protected $requiredFields = ['url'];
+    protected array $requiredFields = ['url'];
 
     /**
-     * @var array
+     * @var array<string, mixed>
      */
-    protected $config = [
+    protected array $config = [
         'headers' => [],
         'verify' => false,
         'expect' => false,
