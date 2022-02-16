@@ -20,7 +20,7 @@
     "require": {
         "php": "^8.0",
         "ext-json": "*",
-        "codeception/codeception": "dev-5.0-interfaces as 5.0.0",
+        "codeception/codeception": "*@dev",
         "codeception/lib-innerbrowser": "^3.0",
         "guzzlehttp/guzzle": "^7.4"
     },
