@@ -21,7 +21,7 @@
         "php": "^8.0",
         "ext-json": "*",
         "codeception/codeception": "*@dev",
-        "codeception/lib-innerbrowser": "^3.0",
+        "codeception/lib-innerbrowser": "*@dev",
         "guzzlehttp/guzzle": "^7.4"
     },
     "require-dev": {
@@ -30,7 +30,8 @@
         "codeception/module-rest": "^2.0 || *@dev"
     },
     "conflict": {
-        "codeception/codeception": "<5.0"
+        "codeception/codeception": "<5.0",
+        "codeception/lib-innerbrowser": "<3.0"
     },
     "suggest": {
         "codeception/phpbuiltinserver": "Start and stop PHP built-in web server for your tests"
