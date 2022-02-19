@@ -156,7 +156,7 @@ class Guzzle extends AbstractBrowser
         return new BrowserKitResponse($body, $status, $headers);
     }
 
-    protected function getAbsoluteUri(string $uri): string
+    protected function getAbsoluteUri($uri): string
     {
         $baseUri = $this->client->getConfig('base_uri');
         if (strpos($uri, '://') === false && strpos($uri, '//') !== 0) {

@@ -23,7 +23,7 @@
         "codeception/codeception": "*@dev",
         "codeception/lib-innerbrowser": "*@dev",
         "guzzlehttp/guzzle": "^7.4",
-        "symfony/browser-kit": "^5.4 || ^6.0"
+        "symfony/browser-kit": "^4.4"
     },
     "require-dev": {
         "ext-curl": "*",
