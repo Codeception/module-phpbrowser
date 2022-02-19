@@ -22,7 +22,8 @@
         "ext-json": "*",
         "codeception/codeception": "*@dev",
         "codeception/lib-innerbrowser": "*@dev",
-        "guzzlehttp/guzzle": "^7.4"
+        "guzzlehttp/guzzle": "^7.4",
+        "symfony/browser-kit": "^5.4 || ^6.0"
     },
     "require-dev": {
         "ext-curl": "*",
