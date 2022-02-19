@@ -33,13 +33,13 @@ use Symfony\Component\BrowserKit\AbstractBrowser;
  *
  * * url *required* - start url of your app
  * * headers - default headers are set before each test.
- * * handler (default: curl) -  Guzzle handler to use. By default curl is used, also possible to pass `stream`, or any valid class name as [Handler](http://docs.guzzlephp.org/en/latest/handlers-and-middleware.html#handlers).
+ * * handler (default: curl) -  Guzzle handler to use. By default curl is used, also possible to pass `stream`, or any valid class name as [Handler](https://docs.guzzlephp.org/en/latest/handlers-and-middleware.html#handlers).
  * * middleware - Guzzle middlewares to add. An array of valid callables is required.
  * * curl - curl options
  * * cookies - ...
  * * auth - ...
  * * verify - ...
- * * .. those and other [Guzzle Request options](http://docs.guzzlephp.org/en/latest/request-options.html)
+ * * .. those and other [Guzzle Request options](https://docs.guzzlephp.org/en/latest/request-options.html)
  *
  *
  * ### Example (`acceptance.suite.yml`)
@@ -74,7 +74,7 @@ use Symfony\Component\BrowserKit\AbstractBrowser;
  *
  * Properties:
  *
- * * `guzzle` - contains [Guzzle](http://guzzlephp.org/) client instance: `\GuzzleHttp\Client`
+ * * `guzzle` - contains [Guzzle](https://guzzlephp.org/) client instance: `\GuzzleHttp\Client`
  * * `client` - Symfony BrowserKit instance.
  *
  */
@@ -193,7 +193,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
 
     /**
      * Low-level API method.
-     * If Codeception commands are not enough, use [Guzzle HTTP Client](http://guzzlephp.org/) methods directly
+     * If Codeception commands are not enough, use [Guzzle HTTP Client](https://guzzlephp.org/) methods directly
      *
      * Example:
      *
