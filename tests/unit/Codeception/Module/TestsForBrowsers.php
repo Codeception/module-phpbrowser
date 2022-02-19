@@ -17,13 +17,13 @@ abstract class TestsForBrowsers extends TestsForWeb
    
     public function testAmOnSubdomain()
     {
-        $this->module->_reconfigure(['url' => 'http://google.com']);
+        $this->module->_reconfigure(['url' => 'https://google.com']);
         $this->module->amOnSubdomain('user');
-        $this->assertEquals('http://user.google.com', $this->module->_getUrl());
+        $this->assertEquals('https://user.google.com', $this->module->_getUrl());
 
-        $this->module->_reconfigure(['url' => 'http://www.google.com']);
+        $this->module->_reconfigure(['url' => 'https://www.google.com']);
         $this->module->amOnSubdomain('user');
-        $this->assertEquals('http://user.google.com', $this->module->_getUrl());
+        $this->assertEquals('https://user.google.com', $this->module->_getUrl());
     }
 
     public function testOpenAbsoluteUrls()

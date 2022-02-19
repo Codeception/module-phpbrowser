@@ -512,11 +512,11 @@ final class PhpBrowserTest extends TestsForBrowsers
         $handler = GuzzleHandlerStack::create($mock);
         $handler->push(GuzzleMiddleware::history($this->history));
 
-        $client = new GuzzleClient(['handler' => $handler, 'base_uri' => 'http://codeception.com']);
+        $client = new GuzzleClient(['handler' => $handler, 'base_uri' => 'https://codeception.com']);
         $guzzleConnector = new Guzzle();
         $guzzleConnector->setClient($client);
         $guzzleConnector->getCookieJar()->set(new Cookie('hello', 'world'));
-        $guzzleConnector->request('GET', 'http://codeception.com/');
+        $guzzleConnector->request('GET', 'https://codeception.com/');
         $this->assertArrayHasKey('cookies', $this->history[0]['options']);
         /** @var $cookie GuzzleHttp\Cookie\SetCookie  **/
         $cookies = $this->history[0]['options']['cookies']->toArray();
