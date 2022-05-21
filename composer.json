@@ -18,13 +18,13 @@
         "php": "^7.4 | ^8.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.4",
-        "codeception/lib-innerbrowser": "^2.0 | *@dev",
-        "codeception/codeception": "^4.1 | *@dev"
+        "codeception/lib-innerbrowser": "^2.0",
+        "codeception/codeception": "^4.1"
     },
     "require-dev": {
         "ext-curl": "*",
         "aws/aws-sdk-php": "^3.199",
-        "codeception/module-rest": "^2.0 | *@dev"
+        "codeception/module-rest": "^2.0"
     },
     "conflict": {
         "codeception/codeception": "<4.1"
