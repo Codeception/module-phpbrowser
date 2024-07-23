@@ -115,7 +115,7 @@ class Guzzle extends AbstractBrowser
             $contentType = 'text/html';
         }
 
-        if (strpos($contentType, 'charset=') === false) {
+        if (str_contains($contentType, 'charset=') === false) {
             if (preg_match('#<meta[^>]+charset *= *["\']?([a-zA-Z\-0-9]+)#i', $body, $matches)) {
                 $contentType .= ';charset=' . $matches[1];
             }
@@ -133,7 +133,7 @@ class Guzzle extends AbstractBrowser
                 $matches
             );
 
-            if (!$matchesMeta && isset($headers['Refresh'])) {
+            if (($matchesMeta === 0 || $matchesMeta === false) && isset($headers['Refresh'])) {
                 // match by header
                 preg_match(
                     '#^\s*(\d*)\s*;\s*url=(.*)#i',
@@ -159,10 +159,10 @@ class Guzzle extends AbstractBrowser
     protected function getAbsoluteUri(string $uri): string
     {
         $baseUri = $this->client->getConfig('base_uri');
-        if (strpos($uri, '://') === false && strpos($uri, '//') !== 0) {
-            if (strpos($uri, '/') === 0) {
+        if ((str_contains($uri, '://') === 0 || str_contains($uri, '://') === false) && !str_starts_with($uri, '//')) {
+            if (str_starts_with($uri, '/')) {
                 $baseUriPath = $baseUri->getPath();
-                if (!empty($baseUriPath) && strpos($uri, (string) $baseUriPath) === 0) {
+                if (!empty($baseUriPath) && str_starts_with($uri, (string) $baseUriPath)) {
                     $uri = substr($uri, strlen($baseUriPath));
                 }
 
@@ -200,17 +200,17 @@ class Guzzle extends AbstractBrowser
         }
 
         try {
-            if (null !== $this->awsCredentials) {
+            if ($this->awsCredentials instanceof AwsCredentials) {
                 $response = $this->client->send($this->awsSignature->signRequest($guzzleRequest, $this->awsCredentials), $options);
             } else {
                 $response = $this->client->send($guzzleRequest, $options);
             }
-        } catch (RequestException $exception) {
-            if (!$exception->hasResponse()) {
-                throw $exception;
+        } catch (RequestException $requestException) {
+            if (!$requestException->hasResponse()) {
+                throw $requestException;
             }
 
-            $response = $exception->getResponse();
+            $response = $requestException->getResponse();
         }
 
         return $this->createResponse($response);
@@ -219,15 +219,15 @@ class Guzzle extends AbstractBrowser
     /**
      * @return array<string, mixed>
      */
-    protected function extractHeaders(BrowserKitRequest $request): array
+    protected function extractHeaders(BrowserKitRequest $browserKitRequest): array
     {
         $headers = [];
-        $server = $request->getServer();
+        $server = $browserKitRequest->getServer();
 
         $contentHeaders = ['Content-Length' => true, 'Content-Md5' => true, 'Content-Type' => true];
         foreach ($server as $header => $val) {
             $header = html_entity_decode(implode('-', array_map('ucfirst', explode('-', strtolower(str_replace('_', '-', $header))))), ENT_NOQUOTES);
-            if (strpos($header, 'Http-') === 0) {
+            if (str_starts_with($header, 'Http-')) {
                 $headers[substr($header, 5)] = $val;
             } elseif (isset($contentHeaders[$header])) {
                 $headers[$header] = $val;
@@ -264,7 +264,7 @@ class Guzzle extends AbstractBrowser
         }
 
         $parts = $this->mapFiles($browserKitRequest->getFiles());
-        if (empty($parts)) {
+        if ($parts === []) {
             return [];
         }
 
@@ -275,11 +275,11 @@ class Guzzle extends AbstractBrowser
         return $parts;
     }
 
-    protected function formatMultipart($parts, $key, $value)
+    protected function formatMultipart($parts, string $key, $value)
     {
         if (is_array($value)) {
             foreach ($value as $subKey => $subValue) {
-                $parts = array_merge($this->formatMultipart([], $key.sprintf('[%s]', $subKey), $subValue), $parts);
+                $parts = array_merge($this->formatMultipart([], $key . sprintf('[%s]', $subKey), $subValue), $parts);
             }
 
             return $parts;
@@ -289,11 +289,11 @@ class Guzzle extends AbstractBrowser
         return $parts;
     }
 
-    protected function mapFiles($requestFiles, $arrayName = ''): array
+    protected function mapFiles($requestFiles, ?string $arrayName = ''): array
     {
         $files = [];
         foreach ($requestFiles as $name => $info) {
-            if (!empty($arrayName)) {
+            if ($arrayName !== null && $arrayName !== '' && $arrayName !== '0') {
                 $name = $arrayName . '[' . $name . ']';
             }
 
@@ -360,7 +360,7 @@ class Guzzle extends AbstractBrowser
         }
 
         if (is_string($handler) && class_exists($handler)) {
-            return GuzzleHandlerStack::create(new $handler);
+            return GuzzleHandlerStack::create(new $handler());
         }
 
         if (is_callable($handler)) {
@@ -370,7 +370,7 @@ class Guzzle extends AbstractBrowser
         return GuzzleHandlerStack::create();
     }
 
-    public function setAwsAuth($config): void
+    public function setAwsAuth(array $config): void
     {
         $this->awsCredentials = new AwsCredentials($config['key'], $config['secret']);
         $this->awsSignature = new AwsSignatureV4($config['service'], $config['region']);

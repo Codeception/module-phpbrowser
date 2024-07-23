@@ -5,7 +5,7 @@ include_once 'server.php';
 $GLOBALS['RESTmap'] = [];
 
 $GLOBALS['RESTmap']['GET'] = [
-    'user' => function() {
+    'user' => function () {
         return [
             'name'    => 'davert',
             'email'   => 'davert@mail.ua',
@@ -18,7 +18,7 @@ $GLOBALS['RESTmap']['GET'] = [
                 'country' => 'Ukraine',
             ]];
     },
-    'zeroes' => function() {
+    'zeroes' => function () {
         return [
             'responseCode' => 0,
             'message' => 'OK',
@@ -29,7 +29,7 @@ $GLOBALS['RESTmap']['GET'] = [
             ],
         ];
     },
-    'foo' => function() {
+    'foo' => function () {
         if (isset($_SERVER['HTTP_FOO'])) {
             return 'foo: "' . $_SERVER['HTTP_FOO'] . '"';
         }
@@ -39,11 +39,11 @@ $GLOBALS['RESTmap']['GET'] = [
 ];
 
 $GLOBALS['RESTmap']['POST'] = [
-    'user' => function() {
+    'user' => function () {
         $name = $_POST['name'];
         return ['name' => $name];
     },
-    'file-upload' => function() {
+    'file-upload' => function () {
         return [
             'uploaded' => isset($_FILES['file']['tmp_name']) && file_exists($_FILES['file']['tmp_name']),
         ];
@@ -51,7 +51,7 @@ $GLOBALS['RESTmap']['POST'] = [
 ];
 
 $GLOBALS['RESTmap']['PUT'] = [
-    'user' => function() {
+    'user' => function () {
         $name = $_REQUEST['name'];
         $user = ['name' => 'davert', 'email' => 'davert@mail.ua'];
         $user['name'] = $name;
@@ -60,7 +60,7 @@ $GLOBALS['RESTmap']['PUT'] = [
 ];
 
 $GLOBALS['RESTmap']['DELETE'] = [
-    'user' => function() {
+    'user' => function () {
         header('error', false, 404);
     }
 ];

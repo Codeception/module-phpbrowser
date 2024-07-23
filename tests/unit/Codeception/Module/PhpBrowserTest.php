@@ -11,7 +11,7 @@ use Codeception\Lib\ModuleContainer;
 use Codeception\Module\PhpBrowser;
 use Codeception\Stub;
 
-require_once 'tests/data/app/data.php';
+require_once __DIR__ . '/tests/data/app/data.php';
 require_once __DIR__ . '/TestsForBrowsers.php';
 
 use Codeception\Test\Cept;
@@ -26,9 +26,9 @@ final class PhpBrowserTest extends TestsForBrowsers
 {
     protected PhpBrowser $module;
 
-    protected array $history = [];
+    private array $history = [];
 
-    protected function _setUp()
+    protected function _setUp(): void
     {
         $container = Stub::make(ModuleContainer::class);
         $this->module = new PhpBrowser($container);
@@ -37,7 +37,6 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->_initialize();
         $this->module->_before($this->makeTest());
         $this->module->guzzle->getConfig('handler')->push(GuzzleMiddleware::history($this->history));
-
     }
 
     private function getLastRequest()
@@ -49,7 +48,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         return $this->history->getLastRequest();
     }
 
-    protected function _tearDown()
+    protected function _tearDown(): void
     {
         if ($this->module) {
             $this->module->_after($this->makeTest());
@@ -61,12 +60,12 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @return \\Codeception\Test\Cept&\PHPUnit\Framework\MockObject\MockObject
      */
-    protected function makeTest()
+    private function makeTest()
     {
         return Stub::makeEmpty(Cept::class);
     }
 
-    public function testAjax()
+    public function testAjax(): void
     {
         $this->module->amOnPage('/');
         $this->module->sendAjaxGetRequest('/info');
@@ -78,32 +77,32 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertEquals('author', $post['show']);
     }
 
-    public function testLinksWithNonLatin()
+    public function testLinksWithNonLatin(): void
     {
         $this->module->amOnPage('/info');
         $this->module->seeLink('Ссылочка');
         $this->module->click('Ссылочка');
     }
 
-    public function testHtmlSnapshot()
+    public function testHtmlSnapshot(): void
     {
         $this->module->amOnPage('/');
-        $testName="debugPhpBrowser";
+        $testName = "debugPhpBrowser";
         $this->module->makeHtmlSnapshot($testName);
-        $this->assertFileExists(CodeceptConfig::outputDir().'debug/'.$testName.'.html');
-        @unlink(CodeceptConfig::outputDir().'debug/'.$testName.'.html');
+        $this->assertFileExists(CodeceptConfig::outputDir() . 'debug/' . $testName . '.html');
+        @unlink(CodeceptConfig::outputDir() . 'debug/' . $testName . '.html');
     }
 
     /**
      * @see https://github.com/Codeception/Codeception/issues/4509
      */
-    public function testSeeTextAfterJSComparisionOperator()
+    public function testSeeTextAfterJSComparisionOperator(): void
     {
         $this->module->amOnPage('/info');
         $this->module->see('Text behind JS comparision');
     }
 
-    public function testSetMultipleCookies()
+    public function testSetMultipleCookies(): void
     {
         $this->module->amOnPage('/');
         $cookie_name_1  = 'test_cookie';
@@ -131,7 +130,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->dontSeeCookie($cookie_name_2);
     }
 
-    public function testSessionsHaveIndependentCookies()
+    public function testSessionsHaveIndependentCookies(): void
     {
         $this->module->amOnPage('/');
         $cookie_name_1  = 'test_cookie';
@@ -153,7 +152,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCookie($cookie_name_1);
     }
 
-    public function testSubmitFormGet()
+    public function testSubmitFormGet(): void
     {
         $I = $this->module;
         $I->amOnPage('/search');
@@ -161,7 +160,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $I->see('Success');
     }
 
-    public function testHtmlRedirect()
+    public function testHtmlRedirect(): void
     {
         $this->module->amOnPage('/redirect2');
         $this->module->seeResponseCodeIs(200);
@@ -171,21 +170,21 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCurrentUrlEquals('/redirect_interval');
     }
 
-    public function testHtmlRedirectWithParams()
+    public function testHtmlRedirectWithParams(): void
     {
         $this->module->amOnPage('/redirect_params');
         $this->module->seeResponseCodeIs(200);
         $this->module->seeCurrentUrlEquals('/search?one=1&two=2');
     }
 
-    public function testMetaRefresh()
+    public function testMetaRefresh(): void
     {
         $this->module->amOnPage('/redirect_meta_refresh');
         $this->module->seeResponseCodeIs(200);
         $this->module->seeCurrentUrlEquals('/info');
     }
 
-    public function testMetaRefreshIsIgnoredIfIntervalIsLongerThanMaxInterval()
+    public function testMetaRefreshIsIgnoredIfIntervalIsLongerThanMaxInterval(): void
     {
         // prepare config
         $config = $this->module->_getConfig();
@@ -196,7 +195,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCurrentUrlEquals('/redirect_meta_refresh');
     }
 
-    public function testRefreshRedirect()
+    public function testRefreshRedirect(): void
     {
         $this->module->amOnPage('/redirect3');
         $this->module->seeResponseCodeIs(200);
@@ -207,7 +206,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->see('Welcome to test app!');
     }
 
-    public function testRedirectWithGetParams()
+    public function testRedirectWithGetParams(): void
     {
         $this->module->amOnPage('/redirect4');
         $this->module->seeInCurrentUrl('/search?ln=test@gmail.com&sn=testnumber');
@@ -216,7 +215,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertContains('test@gmail.com', $params);
     }
 
-    public function testRedirectBaseUriHasPath()
+    public function testRedirectBaseUriHasPath(): void
     {
         // prepare config
         $config = $this->module->_getConfig();
@@ -229,7 +228,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->see('Lots of valuable data here');
     }
 
-    public function testRedirectBaseUriHasPathAnd302Code()
+    public function testRedirectBaseUriHasPathAnd302Code(): void
     {
         // prepare config
         $config = $this->module->_getConfig();
@@ -242,7 +241,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->see('Lots of valuable data here');
     }
 
-    public function testRelativeRedirect()
+    public function testRelativeRedirect(): void
     {
         // test relative redirects where the effective request URI is in a
         // subdirectory
@@ -257,14 +256,14 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCurrentUrlEquals('/info');
     }
 
-    public function testChainedRedirects()
+    public function testChainedRedirects(): void
     {
         $this->module->amOnPage('/redirect_twice');
         $this->module->seeResponseCodeIs(200);
         $this->module->seeCurrentUrlEquals('/info');
     }
 
-    public function testDisabledRedirects()
+    public function testDisabledRedirects(): void
     {
         $this->module->client->followRedirects(false);
         $this->module->amOnPage('/redirect_twice');
@@ -272,22 +271,22 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCurrentUrlEquals('/redirect_twice');
     }
 
-    public function testRedirectLimitReached()
+    public function testRedirectLimitReached(): void
     {
         $this->module->client->setMaxRedirects(1);
         try {
             $this->module->amOnPage('/redirect_twice');
             $this->fail('redirect limit is not respected');
-        } catch (LogicException $exception) {
+        } catch (LogicException $logicException) {
             $this->assertEquals(
                 'The maximum number (1) of redirections was reached.',
-                $exception->getMessage(),
+                $logicException->getMessage(),
                 'redirect limit is respected'
             );
         }
     }
 
-    public function testRedirectLimitNotReached()
+    public function testRedirectLimitNotReached(): void
     {
         $this->module->client->setMaxRedirects(2);
         $this->module->amOnPage('/redirect_twice');
@@ -295,14 +294,14 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCurrentUrlEquals('/info');
     }
 
-    public function testLocationHeaderDoesNotRedirectWhenStatusCodeIs201()
+    public function testLocationHeaderDoesNotRedirectWhenStatusCodeIs201(): void
     {
         $this->module->amOnPage('/location_201');
         $this->module->seeResponseCodeIs(201);
         $this->module->seeCurrentUrlEquals('/location_201');
     }
 
-    public function testRedirectToAnotherDomainUsingSchemalessUrl()
+    public function testRedirectToAnotherDomainUsingSchemalessUrl(): void
     {
 
         $this->module->_reconfigure([
@@ -311,14 +310,13 @@ final class PhpBrowserTest extends TestsForBrowsers
                 new Response(200, [], 'Cool stuff')
             ])
         ]);
-        /** @var GuzzleHandlerStack $handlerStack */
         $this->module->amOnUrl('http://fictional.redirector/redirect-to?url=//example.org/');
 
         $currentUrl = $this->module->client->getHistory()->current()->getUri();
         $this->assertSame('http://example.org/', $currentUrl);
     }
 
-    public function testSetCookieByHeader()
+    public function testSetCookieByHeader(): void
     {
         $this->module->amOnPage('/cookies2');
         $this->module->seeResponseCodeIs(200);
@@ -327,14 +325,14 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCookie('c');
     }
 
-    public function testSettingContentTypeFromHtml()
+    public function testSettingContentTypeFromHtml(): void
     {
         $this->module->amOnPage('/content-iso');
         $charset = $this->module->client->getResponse()->getHeader('Content-Type');
         $this->assertEquals('text/html;charset=ISO-8859-1', $charset);
     }
 
-    public function testSettingCharsetFromHtml()
+    public function testSettingCharsetFromHtml(): void
     {
         $this->module->amOnPage('/content-cp1251');
         $charset = $this->module->client->getResponse()->getHeader('Content-Type');
@@ -344,7 +342,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @Issue https://github.com/Codeception/Codeception/issues/933
      */
-    public function testSubmitFormWithQueries()
+    public function testSubmitFormWithQueries(): void
     {
         $this->module->amOnPage('/form/example3');
         $this->module->seeElement('form');
@@ -356,14 +354,14 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->seeCurrentUrlEquals('/form/example3?validate=yes');
     }
 
-    public function testHeadersBySetHeader()
+    public function testHeadersBySetHeader(): void
     {
         $this->module->setHeader('xxx', 'yyyy');
         $this->module->amOnPage('/');
         $this->assertTrue($this->getLastRequest()->hasHeader('xxx'));
     }
 
-    public function testDeleteHeaders()
+    public function testDeleteHeaders(): void
     {
         $this->module->setHeader('xxx', 'yyyy');
         $this->module->deleteHeader('xxx');
@@ -371,7 +369,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertFalse($this->getLastRequest()->hasHeader('xxx'));
     }
 
-    public function testDeleteHeadersByEmptyValue()
+    public function testDeleteHeadersByEmptyValue(): void
     {
         $this->module->setHeader('xxx', 'yyyy');
         $this->module->setHeader('xxx', '');
@@ -379,7 +377,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertFalse($this->getLastRequest()->hasHeader('xxx'));
     }
 
-    public function testCurlOptions()
+    public function testCurlOptions(): void
     {
         $this->module->_setConfig(['url' => 'http://google.com', 'curl' => ['CURLOPT_NOBODY' => true]]);
         $this->module->_initialize();
@@ -394,7 +392,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     }
 
 
-    public function testCurlSslOptions()
+    public function testCurlSslOptions(): void
     {
         $this->module->_setConfig([
             'url' => 'https://github.com',
@@ -412,7 +410,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertSame('', $this->module->_getResponseContent(), 'CURLOPT_NOBODY setting is not respected');
     }
 
-    public function testHttpAuth()
+    public function testHttpAuth(): void
     {
         $this->module->amOnPage('/auth');
         $this->module->seeResponseCodeIs(401);
@@ -430,11 +428,11 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->see('Forbidden');
     }
 
-    public function testRawGuzzle()
+    public function testRawGuzzle(): void
     {
-        $code = $this->module->executeInGuzzle(function (GuzzleClient $client): int {
-            $res = $client->get('/info');
-            return $res->getStatusCode();
+        $code = $this->module->executeInGuzzle(function (GuzzleClient $guzzleClient): int {
+            $response = $guzzleClient->get('/info');
+            return $response->getStatusCode();
         });
         $this->assertEquals(200, $code);
     }
@@ -459,7 +457,7 @@ final class PhpBrowserTest extends TestsForBrowsers
      * this will check if current element contains inner arrays within it's keys
      * so we can ignore element itself and only process inner files
      */
-    public function testFormWithFilesInOnlyArray()
+    public function testFormWithFilesInOnlyArray(): void
     {
         $this->shouldFail();
         $this->module->amOnPage('/form/example13');
@@ -468,7 +466,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->click('Submit');
     }
 
-    public function testDoubleSlash()
+    public function testDoubleSlash(): void
     {
         $I = $this->module;
         $I->amOnPage('/register');
@@ -479,13 +477,13 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertEquals($formPath, '/register');
     }
 
-    public function testFillFieldWithoutPage()
+    public function testFillFieldWithoutPage(): void
     {
         $this->expectException(ModuleException::class);
         $this->module->fillField('#name', 'Nothing special');
     }
 
-    public function testArrayFieldSubmitForm()
+    public function testArrayFieldSubmitForm(): void
     {
         $this->module->amOnPage('/form/example17');
         $this->module->submitForm(
@@ -504,19 +502,19 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertEquals('crunked', $data['Food']['beer']['yum']['yeah']);
     }
 
-    public function testCookiesForDomain()
+    public function testCookiesForDomain(): void
     {
-        $mock = new MockHandler([
+        $mockHandler = new MockHandler([
             new Response(200, ['X-Foo' => 'Bar']),
         ]);
-        $handler = GuzzleHandlerStack::create($mock);
-        $handler->push(GuzzleMiddleware::history($this->history));
+        $guzzleHandlerStack = GuzzleHandlerStack::create($mockHandler);
+        $guzzleHandlerStack->push(GuzzleMiddleware::history($this->history));
 
-        $client = new GuzzleClient(['handler' => $handler, 'base_uri' => 'https://codeception.com']);
-        $guzzleConnector = new Guzzle();
-        $guzzleConnector->setClient($client);
-        $guzzleConnector->getCookieJar()->set(new Cookie('hello', 'world'));
-        $guzzleConnector->request('GET', 'https://codeception.com/');
+        $client = new GuzzleClient(['handler' => $guzzleHandlerStack, 'base_uri' => 'https://codeception.com']);
+        $guzzle = new Guzzle();
+        $guzzle->setClient($client);
+        $guzzle->getCookieJar()->set(new Cookie('hello', 'world'));
+        $guzzle->request('GET', 'https://codeception.com/');
         $this->assertArrayHasKey('cookies', $this->history[0]['options']);
         /** @var $cookie GuzzleHttp\Cookie\SetCookie  **/
         $cookies = $this->history[0]['options']['cookies']->toArray();
@@ -527,7 +525,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @issue https://github.com/Codeception/Codeception/issues/2653
      */
-    public function testSetCookiesByOptions()
+    public function testSetCookiesByOptions(): void
     {
         $config = $this->module->_getConfig();
         $config['cookies'] = [
@@ -549,7 +547,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @issue https://github.com/Codeception/Codeception/issues/2234
      */
-    public function testEmptyValueOfCookie()
+    public function testEmptyValueOfCookie(): void
     {
         //set cookie
         $this->module->amOnPage('/cookies2');
@@ -559,7 +557,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->dontSeeCookie('a');
     }
 
-    public function testRequestApi()
+    public function testRequestApi(): void
     {
         $this->expectException(ModuleException::class);
         $response = $this->module->_request('POST', '/form/try', ['user' => 'davert']);
@@ -570,7 +568,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->click('Welcome to test app'); // page not loaded
     }
 
-    public function testLoadPageApi()
+    public function testLoadPageApi(): void
     {
         $this->module->_loadPage('POST', '/form/try', ['user' => 'davert']);
         $data = data::get('form');
@@ -583,7 +581,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @issue https://github.com/Codeception/Codeception/issues/2408
      */
-    public function testClickFailure()
+    public function testClickFailure(): void
     {
         $this->module->amOnPage('/info');
         $this->expectException(ElementNotFound::class);
@@ -594,7 +592,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @issue https://github.com/Codeception/Codeception/issues/2841
      */
-    public function testSubmitFormDoesNotKeepGetParameters()
+    public function testSubmitFormDoesNotKeepGetParameters(): void
     {
         $this->module->amOnPage('/form/bug2841?stuff=other');
         $this->module->fillField('#texty', 'thingshjere');
@@ -602,7 +600,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertEmpty(data::get('query'), 'Query string is not empty');
     }
 
-    public function testClickLinkAndFillField()
+    public function testClickLinkAndFillField(): void
     {
         $this->module->amOnPage('/info');
         $this->module->click('Sign in!');
@@ -610,21 +608,21 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->fillField('email', 'email@example.org');
     }
 
-    public function testClickSelectsClickableElementFromMatches()
+    public function testClickSelectsClickableElementFromMatches(): void
     {
         $this->module->amOnPage('/form/multiple_matches');
         $this->module->click('Press Me!');
         $this->module->seeCurrentUrlEquals('/info');
     }
 
-    public function testClickSelectsClickableElementFromMatchesUsingCssLocator()
+    public function testClickSelectsClickableElementFromMatchesUsingCssLocator(): void
     {
         $this->module->amOnPage('/form/multiple_matches');
         $this->module->click(['css' => '.link']);
         $this->module->seeCurrentUrlEquals('/info');
     }
 
-    public function testClickingOnButtonOutsideFormDoesNotCauseFatalError()
+    public function testClickingOnButtonOutsideFormDoesNotCauseFatalError(): void
     {
         $this->expectException(TestRuntimeException::class);
         $this->expectExceptionMessage('Button is not inside a link or a form');
@@ -632,7 +630,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->click('Submit 2');
     }
 
-    public function testSubmitFormWithoutEmptyOptionsInSelect()
+    public function testSubmitFormWithoutEmptyOptionsInSelect(): void
     {
         $this->module->amOnPage('/form/bug3824');
         $this->module->submitForm('form', []);
@@ -642,7 +640,7 @@ final class PhpBrowserTest extends TestsForBrowsers
     /**
      * @issue https://github.com/Codeception/Codeception/issues/3953
      */
-    public function testFillFieldInGetFormWithoutId()
+    public function testFillFieldInGetFormWithoutId(): void
     {
         $this->module->amOnPage('/form/bug3953');
         $this->module->selectOption('select_name', 'two');
@@ -654,18 +652,18 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertEquals('searchterm', $params['search_name']);
     }
 
-    public function testGrabPageSourceWhenNotOnPage()
+    public function testGrabPageSourceWhenNotOnPage(): void
     {
         $this->expectException(ModuleException::class);
         $this->expectExceptionMessage('Page not loaded. Use `$I->amOnPage` (or hidden API methods `_request` and `_loadPage`) to open it');
         $this->module->grabPageSource();
     }
 
-    public function testGrabPageSourceWhenOnPage()
+    public function testGrabPageSourceWhenOnPage(): void
     {
         $this->module->amOnPage('/minimal');
         $sourceExpected =
-<<<HTML
+        <<<HTML
 <!DOCTYPE html>
 <html>
     <head>
@@ -689,7 +687,7 @@ HTML
     /**
      * @issue https://github.com/Codeception/Codeception/issues/4383
      */
-    public function testSecondAmOnUrlWithEmptyPath()
+    public function testSecondAmOnUrlWithEmptyPath(): void
     {
         $this->module->amOnUrl('http://localhost:8000/info');
         $this->module->see('Lots of valuable data here');
@@ -697,7 +695,7 @@ HTML
         $this->module->dontSee('Lots of valuable data here');
     }
 
-    public function testSetUserAgentUsingConfig()
+    public function testSetUserAgentUsingConfig(): void
     {
         $this->module->_setConfig(['headers' => ['User-Agent' => 'Codeception User Agent Test 1.0']]);
         $this->module->_initialize();
@@ -708,7 +706,7 @@ HTML
         $this->assertEquals('Codeception User Agent Test 1.0', $response, 'Incorrect user agent');
     }
 
-    public function testIfStatusCodeIsWithin2xxRange()
+    public function testIfStatusCodeIsWithin2xxRange(): void
     {
         $this->module->amOnPage('https://httpstat.us/200');
         $this->module->seeResponseCodeIsSuccessful();
@@ -717,7 +715,7 @@ HTML
         $this->module->seeResponseCodeIsSuccessful();
     }
 
-    public function testIfStatusCodeIsWithin3xxRange()
+    public function testIfStatusCodeIsWithin3xxRange(): void
     {
         $this->module->amOnPage('https://httpstat.us/300');
         $this->module->seeResponseCodeIsRedirection();
@@ -726,7 +724,7 @@ HTML
         $this->module->seeResponseCodeIsRedirection();
     }
 
-    public function testIfStatusCodeIsWithin4xxRange()
+    public function testIfStatusCodeIsWithin4xxRange(): void
     {
         $this->module->amOnPage('https://httpstat.us/400');
         $this->module->seeResponseCodeIsClientError();
@@ -735,7 +733,7 @@ HTML
         $this->module->seeResponseCodeIsClientError();
     }
 
-    public function testIfStatusCodeIsWithin5xxRange()
+    public function testIfStatusCodeIsWithin5xxRange(): void
     {
         $this->module->amOnPage('https://httpstat.us/500');
         $this->module->seeResponseCodeIsServerError();
@@ -747,7 +745,7 @@ HTML
     /**
      * @issue https://github.com/Codeception/Codeception/issues/5547
      */
-    public function testSelectOptionByTextWhenItHasNoValue()
+    public function testSelectOptionByTextWhenItHasNoValue(): void
     {
         $this->module->amOnPage('/form/bug5547');
         $this->module->selectOption('#_payment_type', 'qwerty');

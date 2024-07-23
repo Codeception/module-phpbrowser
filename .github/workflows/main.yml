@@ -26,6 +26,15 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress --no-interaction --no-suggest
 
+    - name: Execute Code Sniffer
+      run: vendor/bin/phpcs
+
+    - name: Execute PHP Stan
+      run: vendor/bin/phpstan
+
+    - name: Execute Rector
+      run: vendor/bin/rector --dry-run
+
     - name: Run test suite
       run: |
         php -S 127.0.0.1:8000 -t tests/data/app >/dev/null 2>&1 &

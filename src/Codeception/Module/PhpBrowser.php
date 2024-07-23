@@ -121,21 +121,18 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         'connect_timeout'
     ];
 
-    /**
-     * @var Guzzle
-     */
     public ?AbstractBrowser $client = null;
 
     public ?GuzzleClient $guzzle = null;
 
-    public function _initialize()
+    public function _initialize(): void
     {
         $this->_initializeSession();
     }
 
-    public function _before(TestInterface $test)
+    public function _before(TestInterface $test): void
     {
-        if (!$this->client) {
+        if (!$this->client instanceof \Symfony\Component\BrowserKit\AbstractBrowser) {
             $this->client = new Guzzle();
         }
 
@@ -245,14 +242,14 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
 
         $defaults['base_uri'] = $this->config['url'];
         $defaults['curl'] = $curlOptions;
-        $handler = Guzzle::createHandler($this->config['handler']);
-        if ($handler && is_array($this->config['middleware'])) {
+        $handlerStack = Guzzle::createHandler($this->config['handler']);
+        if (is_array($this->config['middleware'])) {
             foreach ($this->config['middleware'] as $middleware) {
-                $handler->push($middleware);
+                $handlerStack->push($middleware);
             }
         }
 
-        $defaults['handler'] = $handler;
+        $defaults['handler'] = $handlerStack;
         $this->guzzle = new GuzzleClient($defaults);
 
         $this->client->setRefreshMaxInterval($this->config['refresh_max_interval']);
