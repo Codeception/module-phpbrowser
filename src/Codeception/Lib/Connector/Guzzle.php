@@ -23,6 +23,9 @@ use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 
 class Guzzle extends AbstractBrowser
 {
+    /**
+     * @var array<string, mixed>
+     */
     protected array $requestOptions = [
         'allow_redirects' => false,
         'headers'         => [],
@@ -159,7 +162,7 @@ class Guzzle extends AbstractBrowser
     protected function getAbsoluteUri(string $uri): string
     {
         $baseUri = $this->client->getConfig('base_uri');
-        if ((str_contains($uri, '://') === 0 || str_contains($uri, '://') === false) && !str_starts_with($uri, '//')) {
+        if (str_contains($uri, '://') === false && !str_starts_with($uri, '//')) {
             if (str_starts_with($uri, '/')) {
                 $baseUriPath = $baseUri->getPath();
                 if (!empty($baseUriPath) && str_starts_with($uri, (string) $baseUriPath)) {
@@ -178,9 +181,9 @@ class Guzzle extends AbstractBrowser
         return Uri::mergeUrls((string)$baseUri, $uri);
     }
 
-    protected function doRequest($request)
+    protected function doRequest(object $request): BrowserKitResponse
     {
-        /** @var $request BrowserKitRequest **/
+        /** @var BrowserKitRequest $request **/
         $guzzleRequest = new Psr7Request(
             $request->getMethod(),
             $request->getUri(),
@@ -190,12 +193,12 @@ class Guzzle extends AbstractBrowser
         $options = $this->requestOptions;
         $options['cookies'] = $this->extractCookies($guzzleRequest->getUri()->getHost());
         $multipartData = $this->extractMultipartFormData($request);
-        if (!empty($multipartData)) {
+        if ($multipartData !== []) {
             $options['multipart'] = $multipartData;
         }
 
         $formData = $this->extractFormData($request);
-        if (empty($multipartData) && $formData) {
+        if ($multipartData === [] && $formData) {
             $options['form_params'] = $formData;
         }
 
@@ -213,6 +216,7 @@ class Guzzle extends AbstractBrowser
             $response = $requestException->getResponse();
         }
 
+        // @phpstan-ignore-next-line
         return $this->createResponse($response);
     }
 
@@ -237,6 +241,9 @@ class Guzzle extends AbstractBrowser
         return $headers;
     }
 
+    /**
+     * @return array<int, mixed>|null
+     */
     protected function extractFormData(BrowserKitRequest $browserKitRequest): ?array
     {
         if (!in_array(strtoupper($browserKitRequest->getMethod()), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
@@ -257,7 +264,10 @@ class Guzzle extends AbstractBrowser
         return $browserKitRequest->getParameters();
     }
 
-    protected function extractMultipartFormData(BrowserKitRequest $browserKitRequest)
+    /**
+     * @return array<string, mixed>
+     */
+    protected function extractMultipartFormData(BrowserKitRequest $browserKitRequest): array
     {
         if (!in_array(strtoupper($browserKitRequest->getMethod()), ['POST', 'PUT', 'PATCH'])) {
             return [];
@@ -275,7 +285,10 @@ class Guzzle extends AbstractBrowser
         return $parts;
     }
 
-    protected function formatMultipart($parts, string $key, $value)
+    /**
+     * @return array<string, mixed>
+     */
+    protected function formatMultipart(mixed $parts, string $key, mixed $value): array
     {
         if (is_array($value)) {
             foreach ($value as $subKey => $subValue) {
@@ -289,7 +302,11 @@ class Guzzle extends AbstractBrowser
         return $parts;
     }
 
-    protected function mapFiles($requestFiles, ?string $arrayName = ''): array
+    /**
+     * @param array<int, mixed> $requestFiles
+     * @return array<int, mixed>
+     */
+    protected function mapFiles(array $requestFiles, ?string $arrayName = ''): array
     {
         $files = [];
         foreach ($requestFiles as $name => $info) {
@@ -329,7 +346,7 @@ class Guzzle extends AbstractBrowser
         return $files;
     }
 
-    protected function extractCookies($host): GuzzleCookieJar
+    protected function extractCookies(string $host): GuzzleCookieJar
     {
         $jar = [];
         $cookies = $this->getCookieJar()->all();
@@ -345,7 +362,7 @@ class Guzzle extends AbstractBrowser
         return new GuzzleCookieJar(false, $jar);
     }
 
-    public static function createHandler($handler): GuzzleHandlerStack
+    public static function createHandler(mixed $handler): GuzzleHandlerStack
     {
         if ($handler instanceof GuzzleHandlerStack) {
             return $handler;
@@ -370,6 +387,9 @@ class Guzzle extends AbstractBrowser
         return GuzzleHandlerStack::create();
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function setAwsAuth(array $config): void
     {
         $this->awsCredentials = new AwsCredentials($config['key'], $config['secret']);

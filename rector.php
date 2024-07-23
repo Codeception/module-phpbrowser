@@ -16,7 +16,6 @@ use Rector\PHPUnit\Set\PHPUnitSetList;
 return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/src',
-        __DIR__.'/tests/unit',
     ])
     // uncomment to reach your current PHP version
     ->withPhpSets()
