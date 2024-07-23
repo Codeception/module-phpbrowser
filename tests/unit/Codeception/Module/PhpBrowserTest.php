@@ -11,7 +11,7 @@ use Codeception\Lib\ModuleContainer;
 use Codeception\Module\PhpBrowser;
 use Codeception\Stub;
 
-require_once __DIR__ . '/tests/data/app/data.php';
+require_once dirname(dirname(dirname(__DIR__))) . '/data/app/data.php';
 require_once __DIR__ . '/TestsForBrowsers.php';
 
 use Codeception\Test\Cept;
