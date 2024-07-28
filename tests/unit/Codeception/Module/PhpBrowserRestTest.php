@@ -14,11 +14,11 @@ use Symfony\Component\BrowserKit\Request as SymfonyRequest;
 
 final class PhpBrowserRestTest extends Unit
 {
-    protected REST $module;
+    private REST $rest;
 
-    protected ?PhpBrowser $phpBrowser = null;
+    private ?PhpBrowser $phpBrowser = null;
 
-    protected function _setUp()
+    protected function _setUp(): void
     {
         $container = Stub::make(ModuleContainer::class);
         $this->phpBrowser = new PhpBrowser($container);
@@ -26,140 +26,140 @@ final class PhpBrowserRestTest extends Unit
         $this->phpBrowser->_setConfig(['url' => $url]);
         $this->phpBrowser->_initialize();
 
-        $this->module = Stub::make(REST::class);
-        $this->module->_inject($this->phpBrowser);
-        $this->module->_initialize();
-        $this->module->_before(Stub::makeEmpty(Cest::class));
-        
+        $this->rest = Stub::make(REST::class);
+        $this->rest->_inject($this->phpBrowser);
+        $this->rest->_initialize();
+        $this->rest->_before(Stub::makeEmpty(Cest::class));
+
         $this->phpBrowser->_before(Stub::makeEmpty(Cest::class));
     }
 
-    private function setStubResponse($response)
+    private function setStubResponse($response): void
     {
         $this->phpBrowser = Stub::make(PhpBrowser::class, ['_getResponseContent' => $response]);
-        $this->module->_inject($this->phpBrowser);
-        $this->module->_initialize();
-        $this->module->_before(Stub::makeEmpty(Cest::class));
+        $this->rest->_inject($this->phpBrowser);
+        $this->rest->_initialize();
+        $this->rest->_before(Stub::makeEmpty(Cest::class));
     }
 
-    public function testGet()
+    public function testGet(): void
     {
-        $this->module->sendGET('/rest/user/');
-        $this->module->seeResponseIsJson();
-        $this->module->seeResponseContains('davert');
-        $this->module->seeResponseContainsJson(['name' => 'davert']);
-        $this->module->seeResponseCodeIs(200);
-        $this->module->dontSeeResponseCodeIs(404);
+        $this->rest->sendGET('/rest/user/');
+        $this->rest->seeResponseIsJson();
+        $this->rest->seeResponseContains('davert');
+        $this->rest->seeResponseContainsJson(['name' => 'davert']);
+        $this->rest->seeResponseCodeIs(200);
+        $this->rest->dontSeeResponseCodeIs(404);
     }
 
-    public function testSendAbsoluteUrlGet()
+    public function testSendAbsoluteUrlGet(): void
     {
-        $this->module->sendGET('http://127.0.0.1:8010/rest/user/');
-        $this->module->seeResponseCodeIs(200);
+        $this->rest->sendGET('http://127.0.0.1:8010/rest/user/');
+        $this->rest->seeResponseCodeIs(200);
     }
 
-    public function testPost()
+    public function testPost(): void
     {
-        $this->module->sendPOST('/rest/user/', ['name' => 'john']);
-        $this->module->seeResponseContains('john');
-        $this->module->seeResponseContainsJson(['name' => 'john']);
+        $this->rest->sendPOST('/rest/user/', ['name' => 'john']);
+        $this->rest->seeResponseContains('john');
+        $this->rest->seeResponseContainsJson(['name' => 'john']);
     }
 
-    public function testValidJson()
+    public function testValidJson(): void
     {
         $this->setStubResponse('{"xxx": "yyy"}');
-        $this->module->seeResponseIsJson();
+        $this->rest->seeResponseIsJson();
         $this->setStubResponse('{"xxx": "yyy", "zzz": ["a","b"]}');
-        $this->module->seeResponseIsJson();
-        $this->module->seeResponseEquals('{"xxx": "yyy", "zzz": ["a","b"]}');
+        $this->rest->seeResponseIsJson();
+        $this->rest->seeResponseEquals('{"xxx": "yyy", "zzz": ["a","b"]}');
     }
 
-    public function testInvalidJson()
+    public function testInvalidJson(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->setStubResponse('{xxx = yyy}');
-        $this->module->seeResponseIsJson();
+        $this->rest->seeResponseIsJson();
     }
 
-    public function testValidXml()
+    public function testValidXml(): void
     {
         $this->setStubResponse('<xml></xml>');
-        $this->module->seeResponseIsXml();
+        $this->rest->seeResponseIsXml();
         $this->setStubResponse('<xml><name>John</name></xml>');
-        $this->module->seeResponseIsXml();
-        $this->module->seeResponseEquals('<xml><name>John</name></xml>');
+        $this->rest->seeResponseIsXml();
+        $this->rest->seeResponseEquals('<xml><name>John</name></xml>');
     }
 
-    public function testInvalidXml()
+    public function testInvalidXml(): void
     {
         $this->expectException(ExpectationFailedException::class);
         $this->setStubResponse('<xml><name>John</surname></xml>');
-        $this->module->seeResponseIsXml();
+        $this->rest->seeResponseIsXml();
     }
 
-    public function testSeeInJson()
+    public function testSeeInJson(): void
     {
         $this->setStubResponse(
             '{"ticket": {"title": "Bug should be fixed", "user": {"name": "Davert"}, "labels": null}}'
         );
-        $this->module->seeResponseIsJson();
-        $this->module->seeResponseContainsJson(['name' => 'Davert']);
-        $this->module->seeResponseContainsJson(['user' => ['name' => 'Davert']]);
-        $this->module->seeResponseContainsJson(['ticket' => ['title' => 'Bug should be fixed']]);
-        $this->module->seeResponseContainsJson(['ticket' => ['user' => ['name' => 'Davert']]]);
-        $this->module->seeResponseContainsJson(['ticket' => ['labels' => null]]);
+        $this->rest->seeResponseIsJson();
+        $this->rest->seeResponseContainsJson(['name' => 'Davert']);
+        $this->rest->seeResponseContainsJson(['user' => ['name' => 'Davert']]);
+        $this->rest->seeResponseContainsJson(['ticket' => ['title' => 'Bug should be fixed']]);
+        $this->rest->seeResponseContainsJson(['ticket' => ['user' => ['name' => 'Davert']]]);
+        $this->rest->seeResponseContainsJson(['ticket' => ['labels' => null]]);
     }
 
-    public function testSeeInJsonCollection()
+    public function testSeeInJsonCollection(): void
     {
         $this->setStubResponse(
             '[{"user":"Blacknoir","age":27,"tags":["wed-dev","php"]},'
             . '{"user":"John Doe","age":27,"tags":["web-dev","java"]}]'
         );
-        $this->module->seeResponseIsJson();
-        $this->module->seeResponseContainsJson(['tags' => ['web-dev', 'java']]);
-        $this->module->seeResponseContainsJson(['user' => 'John Doe', 'age' => 27]);
+        $this->rest->seeResponseIsJson();
+        $this->rest->seeResponseContainsJson(['tags' => ['web-dev', 'java']]);
+        $this->rest->seeResponseContainsJson(['user' => 'John Doe', 'age' => 27]);
     }
 
-    public function testArrayJson()
+    public function testArrayJson(): void
     {
         $this->setStubResponse(
             '[{"id":1,"title": "Bug should be fixed"},{"title": "Feature should be implemented","id":2}]'
         );
-        $this->module->seeResponseContainsJson(['id' => 1]);
+        $this->rest->seeResponseContainsJson(['id' => 1]);
     }
 
     /**
      * @issue https://github.com/Codeception/Codeception/issues/4202
      */
-    public function testSeeResponseContainsJsonFailsGracefullyWhenJsonResultIsNotArray()
+    public function testSeeResponseContainsJsonFailsGracefullyWhenJsonResultIsNotArray(): void
     {
         $this->shouldFail();
         $this->setStubResponse(json_encode('no_status', JSON_THROW_ON_ERROR));
-        $this->module->seeResponseContainsJson(['id' => 1]);
+        $this->rest->seeResponseContainsJson(['id' => 1]);
     }
 
-    public function testDontSeeResponseJsonMatchesJsonPathPassesWhenJsonResultIsNotArray()
+    public function testDontSeeResponseJsonMatchesJsonPathPassesWhenJsonResultIsNotArray(): void
     {
         $this->setStubResponse(json_encode('no_status', JSON_THROW_ON_ERROR));
-        $this->module->dontSeeResponseJsonMatchesJsonPath('$.error');
+        $this->rest->dontSeeResponseJsonMatchesJsonPath('$.error');
     }
 
-    public function testDontSeeInJson()
+    public function testDontSeeInJson(): void
     {
         $this->setStubResponse('{"ticket": {"title": "Bug should be fixed", "user": {"name": "Davert"}}}');
-        $this->module->seeResponseIsJson();
-        $this->module->dontSeeResponseContainsJson(['name' => 'Davet']);
-        $this->module->dontSeeResponseContainsJson(['user' => ['name' => 'Davet']]);
-        $this->module->dontSeeResponseContainsJson(['user' => ['title' => 'Bug should be fixed']]);
+        $this->rest->seeResponseIsJson();
+        $this->rest->dontSeeResponseContainsJson(['name' => 'Davet']);
+        $this->rest->dontSeeResponseContainsJson(['user' => ['name' => 'Davet']]);
+        $this->rest->dontSeeResponseContainsJson(['user' => ['title' => 'Bug should be fixed']]);
     }
 
-    public function testApplicationJsonIncludesJsonAsContent()
+    public function testApplicationJsonIncludesJsonAsContent(): void
     {
-        $this->module->haveHttpHeader('Content-Type', 'application/json');
-        $this->module->sendPOST('/', ['name' => 'john']);
+        $this->rest->haveHttpHeader('Content-Type', 'application/json');
+        $this->rest->sendPOST('/', ['name' => 'john']);
         /** @var $request SymfonyRequest **/
-        $request = $this->module->client->getRequest();
+        $request = $this->rest->client->getRequest();
         $this->assertContains('application/json', $request->getServer());
         $server = $request->getServer();
         $this->assertEquals('application/json', $server['HTTP_CONTENT_TYPE']);
@@ -170,24 +170,24 @@ final class PhpBrowserRestTest extends Unit
     /**
      * @issue https://github.com/Codeception/Codeception/issues/3516
      */
-    public function testApplicationJsonHeaderCheckIsCaseInsensitive()
+    public function testApplicationJsonHeaderCheckIsCaseInsensitive(): void
     {
-        $this->module->haveHttpHeader('content-type', 'application/json');
-        $this->module->sendPOST('/', ['name' => 'john']);
+        $this->rest->haveHttpHeader('content-type', 'application/json');
+        $this->rest->sendPOST('/', ['name' => 'john']);
         /** @var $request SymfonyRequest  **/
-        $request = $this->module->client->getRequest();
+        $request = $this->rest->client->getRequest();
         $server = $request->getServer();
         $this->assertEquals('application/json', $server['HTTP_CONTENT_TYPE']);
         $this->assertJson($request->getContent());
         $this->assertEmpty($request->getParameters());
     }
 
-    public function testGetApplicationJsonNotIncludesJsonAsContent()
+    public function testGetApplicationJsonNotIncludesJsonAsContent(): void
     {
-        $this->module->haveHttpHeader('Content-Type', 'application/json');
-        $this->module->sendGET('/', ['name' => 'john']);
+        $this->rest->haveHttpHeader('Content-Type', 'application/json');
+        $this->rest->sendGET('/', ['name' => 'john']);
         /** @var $request SymfonyRequest  **/
-        $request = $this->module->client->getRequest();
+        $request = $this->rest->client->getRequest();
         $this->assertNull($request->getContent());
         $this->assertContains('john', $request->getParameters());
     }
@@ -196,40 +196,40 @@ final class PhpBrowserRestTest extends Unit
      * @Issue https://github.com/Codeception/Codeception/issues/2075
      * Client is undefined for the second test
      */
-    public function testTwoTests()
+    public function testTwoTests(): void
     {
         $cest1 = Stub::makeEmpty(Cest::class);
         $cest2 = Stub::makeEmpty(Cest::class);
 
-        $this->module->sendGET('/rest/user/');
-        $this->module->seeResponseIsJson();
-        $this->module->seeResponseContains('davert');
-        $this->module->seeResponseContainsJson(['name' => 'davert']);
-        $this->module->seeResponseCodeIs(200);
-        $this->module->dontSeeResponseCodeIs(404);
+        $this->rest->sendGET('/rest/user/');
+        $this->rest->seeResponseIsJson();
+        $this->rest->seeResponseContains('davert');
+        $this->rest->seeResponseContainsJson(['name' => 'davert']);
+        $this->rest->seeResponseCodeIs(200);
+        $this->rest->dontSeeResponseCodeIs(404);
 
         $this->phpBrowser->_after($cest1);
-        $this->module->_after($cest1);
-        $this->module->_before($cest2);
+        $this->rest->_after($cest1);
+        $this->rest->_before($cest2);
 
         $this->phpBrowser->_before($cest2);
 
-        $this->module->sendGET('/rest/user/');
-        $this->module->seeResponseIsJson();
-        $this->module->seeResponseContains('davert');
-        $this->module->seeResponseContainsJson(['name' => 'davert']);
-        $this->module->seeResponseCodeIs(200);
-        $this->module->dontSeeResponseCodeIs(404);
+        $this->rest->sendGET('/rest/user/');
+        $this->rest->seeResponseIsJson();
+        $this->rest->seeResponseContains('davert');
+        $this->rest->seeResponseContainsJson(['name' => 'davert']);
+        $this->rest->seeResponseCodeIs(200);
+        $this->rest->dontSeeResponseCodeIs(404);
     }
-    
+
     /**
      * @Issue https://github.com/Codeception/Codeception/issues/2070
      */
-    public function testArrayOfZeroesInJsonResponse()
+    public function testArrayOfZeroesInJsonResponse(): void
     {
-        $this->module->haveHttpHeader('Content-Type', 'application/json');
-        $this->module->sendGET('/rest/zeroes');
-        $this->module->dontSeeResponseContainsJson([
+        $this->rest->haveHttpHeader('Content-Type', 'application/json');
+        $this->rest->sendGET('/rest/zeroes');
+        $this->rest->dontSeeResponseContainsJson([
             'responseCode' => 0,
             'data' => [
                 0,
@@ -239,20 +239,20 @@ final class PhpBrowserRestTest extends Unit
         ]);
     }
 
-    public function testFileUploadWithKeyValueArray()
+    public function testFileUploadWithKeyValueArray(): void
     {
         $tmpFileName = tempnam('/tmp', 'test_');
         file_put_contents($tmpFileName, 'test data');
         $files = [
             'file' => $tmpFileName,
         ];
-        $this->module->sendPOST('/rest/file-upload', [], $files);
-        $this->module->seeResponseContainsJson([
+        $this->rest->sendPOST('/rest/file-upload', [], $files);
+        $this->rest->seeResponseContainsJson([
             'uploaded' => true,
         ]);
     }
 
-    public function testFileUploadWithFilesArray()
+    public function testFileUploadWithFilesArray(): void
     {
         $tmpFileName = tempnam('/tmp', 'test_');
         file_put_contents($tmpFileName, 'test data');
@@ -264,48 +264,48 @@ final class PhpBrowserRestTest extends Unit
                 'tmp_name' => $tmpFileName,
             ]
         ];
-        $this->module->sendPOST('/rest/file-upload', [], $files);
-        $this->module->seeResponseContainsJson([
+        $this->rest->sendPOST('/rest/file-upload', [], $files);
+        $this->rest->seeResponseContainsJson([
             'uploaded' => true,
         ]);
     }
 
-    public function testCanInspectResultOfPhpBrowserRequest()
+    public function testCanInspectResultOfPhpBrowserRequest(): void
     {
         $this->phpBrowser->amOnPage('/rest/user/');
-        $this->module->seeResponseCodeIs(200);
-        $this->module->seeResponseIsJson();
+        $this->rest->seeResponseCodeIs(200);
+        $this->rest->seeResponseIsJson();
     }
 
     /**
      * @Issue 4203 https://github.com/Codeception/Codeception/issues/4203
      */
-    public function testSessionHeaderBackup()
+    public function testSessionHeaderBackup(): void
     {
 
-        $this->module->haveHttpHeader('foo', 'bar');
-        $this->module->sendGET('/rest/foo/');
-        $this->module->seeResponseContains('foo: "bar"');
+        $this->rest->haveHttpHeader('foo', 'bar');
+        $this->rest->sendGET('/rest/foo/');
+        $this->rest->seeResponseContains('foo: "bar"');
 
         $session = $this->phpBrowser->_backupSession();
 
-        $this->module->haveHttpHeader('foo', 'baz');
-        $this->module->sendGET('/rest/foo/');
-        $this->module->seeResponseContains('foo: "baz"');
+        $this->rest->haveHttpHeader('foo', 'baz');
+        $this->rest->sendGET('/rest/foo/');
+        $this->rest->seeResponseContains('foo: "baz"');
 
         $this->phpBrowser->_loadSession($session);
-        $this->module->sendGET('/rest/foo/');
-        $this->module->seeResponseContains('foo: "bar"');
+        $this->rest->sendGET('/rest/foo/');
+        $this->rest->seeResponseContains('foo: "bar"');
     }
 
-    protected function shouldFail()
+    private function shouldFail(): void
     {
         $this->expectException(AssertionFailedError::class);
     }
 
-    public function testGrabFromCurrentUrl()
+    public function testGrabFromCurrentUrl(): void
     {
-        $this->module->sendGET('/rest/foo/');
+        $this->rest->sendGET('/rest/foo/');
         $this->assertEquals('/rest/foo/', $this->phpBrowser->grabFromCurrentUrl());
     }
 }

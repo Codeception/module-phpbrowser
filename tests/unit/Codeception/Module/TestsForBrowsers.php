@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Codeception\Exception\ModuleException;
 
-require_once 'TestsForWeb.php';
+require_once __DIR__ . '/TestsForWeb.php';
 
 /**
  * Author: davert
@@ -14,8 +14,7 @@ require_once 'TestsForWeb.php';
  */
 abstract class TestsForBrowsers extends TestsForWeb
 {
-   
-    public function testAmOnSubdomain()
+    public function testAmOnSubdomain(): void
     {
         $this->module->_reconfigure(['url' => 'https://google.com']);
         $this->module->amOnSubdomain('user');
@@ -26,7 +25,7 @@ abstract class TestsForBrowsers extends TestsForWeb
         $this->assertEquals('https://user.google.com', $this->module->_getUrl());
     }
 
-    public function testOpenAbsoluteUrls()
+    public function testOpenAbsoluteUrls(): void
     {
         $this->module->amOnUrl('http://localhost:8000/');
         $this->module->see('Welcome to test app!', 'h1');
@@ -37,7 +36,7 @@ abstract class TestsForBrowsers extends TestsForWeb
         $this->assertEquals('http://127.0.0.1:8000', $this->module->_getUrl(), 'Host has changed');
     }
 
-    public function testHeadersRedirect()
+    public function testHeadersRedirect(): void
     {
         $this->module->amOnPage('/redirect');
         $this->module->seeInCurrentUrl('info');
@@ -46,7 +45,7 @@ abstract class TestsForBrowsers extends TestsForWeb
     /*
      * https://github.com/Codeception/Codeception/issues/1510
      */
-    public function testSiteRootRelativePathsForBasePathWithSubdir()
+    public function testSiteRootRelativePathsForBasePathWithSubdir(): void
     {
         $this->module->_reconfigure(['url' => 'http://localhost:8000/form']);
         $this->module->amOnPage('/relative_siteroot');
@@ -60,7 +59,7 @@ abstract class TestsForBrowsers extends TestsForWeb
         $this->module->dontSeeInCurrentUrl('form/form/');
     }
 
-    public function testOpenPageException()
+    public function testOpenPageException(): void
     {
         $this->expectException(ModuleException::class);
         $this->module->see('Hello');

@@ -135,7 +135,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
 
     public function _before(TestInterface $test)
     {
-        if (!$this->client) {
+        if (!$this->client instanceof AbstractBrowser) {
             $this->client = new Guzzle();
         }
 
@@ -155,12 +155,14 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->haveHttpHeader($name, $value);
     }
 
-    public function amHttpAuthenticated($username, $password): void
+    public function amHttpAuthenticated(string $username, string $password): void
     {
-        $this->client->setAuth($username, $password);
+        if ($this->client instanceof Guzzle) {
+            $this->client->setAuth($username, $password);
+        }
     }
 
-    public function amOnUrl($url): void
+    public function amOnUrl(string $url): void
     {
         $host = Uri::retrieveHost($url);
         $config = $this->config;
@@ -175,7 +177,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->amOnPage($page);
     }
 
-    public function amOnSubdomain($subdomain): void
+    public function amOnSubdomain(string $subdomain): void
     {
         $url = $this->config['url'];
         $url = preg_replace('#(https?://)(.*\.)(.*\.)#', "$1$3", $url); // removing current subdomain
@@ -206,18 +208,13 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
      *
      * It is not recommended to use this command on a regular basis.
      * If Codeception lacks important Guzzle Client methods, implement them and submit patches.
-     *
-     * @return mixed
      */
-    public function executeInGuzzle(Closure $function)
+    public function executeInGuzzle(Closure $function): mixed
     {
         return $function($this->guzzle);
     }
 
-    /**
-     * @return int|string
-     */
-    public function _getResponseCode()
+    public function _getResponseCode(): int|string
     {
         return $this->getResponseStatusCode();
     }
@@ -245,21 +242,24 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
 
         $defaults['base_uri'] = $this->config['url'];
         $defaults['curl'] = $curlOptions;
-        $handler = Guzzle::createHandler($this->config['handler']);
-        if ($handler && is_array($this->config['middleware'])) {
+        $handlerStack = Guzzle::createHandler($this->config['handler']);
+        if (is_array($this->config['middleware'])) {
             foreach ($this->config['middleware'] as $middleware) {
-                $handler->push($middleware);
+                $handlerStack->push($middleware);
             }
         }
 
-        $defaults['handler'] = $handler;
+        $defaults['handler'] = $handlerStack;
         $this->guzzle = new GuzzleClient($defaults);
 
         $this->client->setRefreshMaxInterval($this->config['refresh_max_interval']);
         $this->client->setClient($this->guzzle);
     }
 
-    public function _backupSession(): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function _backupSession()
     {
         return [
             'client' => $this->client,
@@ -269,6 +269,9 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         ];
     }
 
+    /**
+     * @param array<string, mixed> $session
+     */
     public function _loadSession($session): void
     {
         foreach ($session as $key => $val) {
@@ -276,6 +279,9 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         }
     }
 
+    /**
+     * @param ?array<string, mixed> $session
+     */
     public function _closeSession($session = null): void
     {
         unset($session);

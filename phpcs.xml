@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="PHP_CodeSniffer" xsi:noNamespaceSchemaLocation="phpcs.xsd">
+    <description>The coding standard.</description>
+
+    <config name="testVersion" value="8.1-"/>
+
+    <file>src</file>
+
+    <arg name="basepath" value="./"/>
+    <arg name="colors"/>
+    <arg name="parallel" value="5"/>
+    <arg value="np"/>
+
+    <rule ref="Internal.Tokenizer.Exception">
+        <type>error</type>
+    </rule>
+
+    <rule ref="PSR12"/>
+
+    <rule ref="PSR2.Methods.MethodDeclaration.Underscore">
+        <type>warning</type>
+    </rule>
+</ruleset>

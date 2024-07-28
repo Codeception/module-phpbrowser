@@ -23,6 +23,9 @@ use Symfony\Component\BrowserKit\Response as BrowserKitResponse;
 
 class Guzzle extends AbstractBrowser
 {
+    /**
+     * @var array<string, mixed>
+     */
     protected array $requestOptions = [
         'allow_redirects' => false,
         'headers'         => [],
@@ -115,7 +118,7 @@ class Guzzle extends AbstractBrowser
             $contentType = 'text/html';
         }
 
-        if (strpos($contentType, 'charset=') === false) {
+        if (str_contains($contentType, 'charset=') === false) {
             if (preg_match('#<meta[^>]+charset *= *["\']?([a-zA-Z\-0-9]+)#i', $body, $matches)) {
                 $contentType .= ';charset=' . $matches[1];
             }
@@ -159,10 +162,10 @@ class Guzzle extends AbstractBrowser
     protected function getAbsoluteUri(string $uri): string
     {
         $baseUri = $this->client->getConfig('base_uri');
-        if (strpos($uri, '://') === false && strpos($uri, '//') !== 0) {
-            if (strpos($uri, '/') === 0) {
+        if (str_contains($uri, '://') === false && !str_starts_with($uri, '//')) {
+            if (str_starts_with($uri, '/')) {
                 $baseUriPath = $baseUri->getPath();
-                if (!empty($baseUriPath) && strpos($uri, (string) $baseUriPath) === 0) {
+                if (!empty($baseUriPath) && str_starts_with($uri, (string) $baseUriPath)) {
                     $uri = substr($uri, strlen($baseUriPath));
                 }
 
@@ -178,9 +181,9 @@ class Guzzle extends AbstractBrowser
         return Uri::mergeUrls((string)$baseUri, $uri);
     }
 
-    protected function doRequest($request)
+    protected function doRequest(object $request)
     {
-        /** @var $request BrowserKitRequest **/
+        /** @var BrowserKitRequest $request **/
         $guzzleRequest = new Psr7Request(
             $request->getMethod(),
             $request->getUri(),
@@ -190,17 +193,17 @@ class Guzzle extends AbstractBrowser
         $options = $this->requestOptions;
         $options['cookies'] = $this->extractCookies($guzzleRequest->getUri()->getHost());
         $multipartData = $this->extractMultipartFormData($request);
-        if (!empty($multipartData)) {
+        if ($multipartData !== []) {
             $options['multipart'] = $multipartData;
         }
 
         $formData = $this->extractFormData($request);
-        if (empty($multipartData) && $formData) {
+        if ($multipartData === [] && $formData) {
             $options['form_params'] = $formData;
         }
 
         try {
-            if (null !== $this->awsCredentials) {
+            if ($this->awsCredentials instanceof AwsCredentials) {
                 $response = $this->client->send($this->awsSignature->signRequest($guzzleRequest, $this->awsCredentials), $options);
             } else {
                 $response = $this->client->send($guzzleRequest, $options);
@@ -213,6 +216,7 @@ class Guzzle extends AbstractBrowser
             $response = $exception->getResponse();
         }
 
+        // @phpstan-ignore-next-line
         return $this->createResponse($response);
     }
 
@@ -227,7 +231,7 @@ class Guzzle extends AbstractBrowser
         $contentHeaders = ['Content-Length' => true, 'Content-Md5' => true, 'Content-Type' => true];
         foreach ($server as $header => $val) {
             $header = html_entity_decode(implode('-', array_map('ucfirst', explode('-', strtolower(str_replace('_', '-', $header))))), ENT_NOQUOTES);
-            if (strpos($header, 'Http-') === 0) {
+            if (str_starts_with($header, 'Http-')) {
                 $headers[substr($header, 5)] = $val;
             } elseif (isset($contentHeaders[$header])) {
                 $headers[$header] = $val;
@@ -237,6 +241,9 @@ class Guzzle extends AbstractBrowser
         return $headers;
     }
 
+    /**
+     * @return array<int, mixed>|null
+     */
     protected function extractFormData(BrowserKitRequest $browserKitRequest): ?array
     {
         if (!in_array(strtoupper($browserKitRequest->getMethod()), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
@@ -257,14 +264,17 @@ class Guzzle extends AbstractBrowser
         return $browserKitRequest->getParameters();
     }
 
-    protected function extractMultipartFormData(BrowserKitRequest $browserKitRequest)
+    /**
+     * @return array<string, mixed>
+     */
+    protected function extractMultipartFormData(BrowserKitRequest $browserKitRequest): array
     {
         if (!in_array(strtoupper($browserKitRequest->getMethod()), ['POST', 'PUT', 'PATCH'])) {
             return [];
         }
 
         $parts = $this->mapFiles($browserKitRequest->getFiles());
-        if (empty($parts)) {
+        if ($parts === []) {
             return [];
         }
 
@@ -275,11 +285,14 @@ class Guzzle extends AbstractBrowser
         return $parts;
     }
 
-    protected function formatMultipart($parts, $key, $value)
+    /**
+     * @return array<string, mixed>
+     */
+    protected function formatMultipart(mixed $parts, string $key, mixed $value): array
     {
         if (is_array($value)) {
             foreach ($value as $subKey => $subValue) {
-                $parts = array_merge($this->formatMultipart([], $key.sprintf('[%s]', $subKey), $subValue), $parts);
+                $parts = array_merge($this->formatMultipart([], $key . sprintf('[%s]', $subKey), $subValue), $parts);
             }
 
             return $parts;
@@ -289,7 +302,11 @@ class Guzzle extends AbstractBrowser
         return $parts;
     }
 
-    protected function mapFiles($requestFiles, $arrayName = ''): array
+    /**
+     * @param array<int, mixed> $requestFiles
+     * @return array<int, mixed>
+     */
+    protected function mapFiles(array $requestFiles, ?string $arrayName = ''): array
     {
         $files = [];
         foreach ($requestFiles as $name => $info) {
@@ -329,7 +346,7 @@ class Guzzle extends AbstractBrowser
         return $files;
     }
 
-    protected function extractCookies($host): GuzzleCookieJar
+    protected function extractCookies(string $host): GuzzleCookieJar
     {
         $jar = [];
         $cookies = $this->getCookieJar()->all();
@@ -345,7 +362,7 @@ class Guzzle extends AbstractBrowser
         return new GuzzleCookieJar(false, $jar);
     }
 
-    public static function createHandler($handler): GuzzleHandlerStack
+    public static function createHandler(mixed $handler): GuzzleHandlerStack
     {
         if ($handler instanceof GuzzleHandlerStack) {
             return $handler;
@@ -360,7 +377,7 @@ class Guzzle extends AbstractBrowser
         }
 
         if (is_string($handler) && class_exists($handler)) {
-            return GuzzleHandlerStack::create(new $handler);
+            return GuzzleHandlerStack::create(new $handler());
         }
 
         if (is_callable($handler)) {
@@ -370,7 +387,10 @@ class Guzzle extends AbstractBrowser
         return GuzzleHandlerStack::create();
     }
 
-    public function setAwsAuth($config): void
+    /**
+     * @param array<string, mixed> $config
+     */
+    public function setAwsAuth(array $config): void
     {
         $this->awsCredentials = new AwsCredentials($config['key'], $config['secret']);
         $this->awsSignature = new AwsSignatureV4($config['service'], $config['region']);

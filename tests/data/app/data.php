@@ -1,9 +1,11 @@
 <?php
-class data {
 
+class data
+{
     public static $filename = '/db';
 
-    public static function get($key) {
+    public static function get($key)
+    {
         $data = self::load();
         return $data[$key];
     }
@@ -29,14 +31,16 @@ class data {
 
     protected static function load()
     {
-        $data = file_get_contents(__DIR__.self::$filename);
+        $data = file_get_contents(__DIR__ . self::$filename);
         $data = $data ? unserialize($data) : $data = array();
-        if (!is_array($data)) $data = array();
+        if (!is_array($data)) {
+            $data = array();
+        }
         return $data;
     }
 
     protected static function save($data)
     {
-        file_put_contents(__DIR__.self::$filename, serialize($data));
+        file_put_contents(__DIR__ . self::$filename, serialize($data));
     }
 }
