@@ -121,16 +121,19 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         'connect_timeout'
     ];
 
+    /**
+     * @var Guzzle
+     */
     public ?AbstractBrowser $client = null;
 
     public ?GuzzleClient $guzzle = null;
 
-    public function _initialize(): void
+    public function _initialize()
     {
         $this->_initializeSession();
     }
 
-    public function _before(TestInterface $test): void
+    public function _before(TestInterface $test)
     {
         if (!$this->client instanceof AbstractBrowser) {
             $this->client = new Guzzle();
@@ -139,7 +142,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->_prepareSession();
     }
 
-    public function _getUrl(): string
+    public function _getUrl()
     {
         return $this->config['url'];
     }
@@ -185,7 +188,7 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $this->_reconfigure($config);
     }
 
-    protected function onReconfigure(): void
+    protected function onReconfigure()
     {
         $this->_prepareSession();
     }
@@ -249,16 +252,14 @@ class PhpBrowser extends InnerBrowser implements Remote, MultiSession
         $defaults['handler'] = $handlerStack;
         $this->guzzle = new GuzzleClient($defaults);
 
-        if ($this->client instanceof Guzzle) {
-            $this->client->setRefreshMaxInterval($this->config['refresh_max_interval']);
-            $this->client->setClient($this->guzzle);
-        }
+        $this->client->setRefreshMaxInterval($this->config['refresh_max_interval']);
+        $this->client->setClient($this->guzzle);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function _backupSession(): array
+    public function _backupSession()
     {
         return [
             'client' => $this->client,

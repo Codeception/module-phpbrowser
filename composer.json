@@ -18,20 +18,19 @@
     ],
     "homepage": "https://codeception.com/",
     "require": {
-        "php": "^8.0",
+        "php": "^8.1",
         "ext-json": "*",
         "codeception/codeception": "*@dev",
         "codeception/lib-innerbrowser": "*@dev",
         "guzzlehttp/guzzle": "^7.4",
-        "symfony/browser-kit": "^5.4 || ^6.0 || ^7.0"
+        "symfony/browser-kit": "^5.4 | ^6.0 | ^7.0"
     },
     "require-dev": {
         "ext-curl": "*",
         "squizlabs/php_codesniffer": "^3.10",
         "phpstan/phpstan": "^1.10",
-        "rector/rector": "^1.0",
         "aws/aws-sdk-php": "^3.199",
-        "codeception/module-rest": "^2.0 || *@dev"
+        "codeception/module-rest": "^2.0 | *@dev"
     },
     "conflict": {
         "codeception/codeception": "<5.0",

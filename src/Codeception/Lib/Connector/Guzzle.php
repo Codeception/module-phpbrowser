@@ -136,7 +136,7 @@ class Guzzle extends AbstractBrowser
                 $matches
             );
 
-            if (($matchesMeta === 0 || $matchesMeta === false) && isset($headers['Refresh'])) {
+            if (!$matchesMeta && isset($headers['Refresh'])) {
                 // match by header
                 preg_match(
                     '#^\s*(\d*)\s*;\s*url=(.*)#i',
@@ -181,7 +181,7 @@ class Guzzle extends AbstractBrowser
         return Uri::mergeUrls((string)$baseUri, $uri);
     }
 
-    protected function doRequest(object $request): BrowserKitResponse
+    protected function doRequest(object $request)
     {
         /** @var BrowserKitRequest $request **/
         $guzzleRequest = new Psr7Request(
@@ -208,12 +208,12 @@ class Guzzle extends AbstractBrowser
             } else {
                 $response = $this->client->send($guzzleRequest, $options);
             }
-        } catch (RequestException $requestException) {
-            if (!$requestException->hasResponse()) {
-                throw $requestException;
+        } catch (RequestException $exception) {
+            if (!$exception->hasResponse()) {
+                throw $exception;
             }
 
-            $response = $requestException->getResponse();
+            $response = $exception->getResponse();
         }
 
         // @phpstan-ignore-next-line
@@ -223,10 +223,10 @@ class Guzzle extends AbstractBrowser
     /**
      * @return array<string, mixed>
      */
-    protected function extractHeaders(BrowserKitRequest $browserKitRequest): array
+    protected function extractHeaders(BrowserKitRequest $request): array
     {
         $headers = [];
-        $server = $browserKitRequest->getServer();
+        $server = $request->getServer();
 
         $contentHeaders = ['Content-Length' => true, 'Content-Md5' => true, 'Content-Type' => true];
         foreach ($server as $header => $val) {
@@ -310,7 +310,7 @@ class Guzzle extends AbstractBrowser
     {
         $files = [];
         foreach ($requestFiles as $name => $info) {
-            if ($arrayName !== null && $arrayName !== '' && $arrayName !== '0') {
+            if (!empty($arrayName)) {
                 $name = $arrayName . '[' . $name . ']';
             }
 
