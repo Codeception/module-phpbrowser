@@ -270,6 +270,35 @@ final class PhpBrowserRestTest extends Unit
         ]);
     }
 
+    public function testMultipartPostPreservesArrayOrder(): void
+    {
+        $tmpFileName = tempnam('/tmp', 'test_');
+        file_put_contents($tmpFileName, 'test data');
+        $body = [
+            'users' => [
+                ['id' => 0, 'name' => 'John Doe'],
+                ['id' => 1, 'name' => 'Jane Doe'],
+            ]
+        ];
+        $files = [
+            'file' => [
+                'name' => 'file.txt',
+                'type' => 'text/plain',
+                'size' => 9,
+                'tmp_name' => $tmpFileName,
+            ]
+        ];
+        $this->rest->sendPOST('/rest/multipart-collections', $body, $files);
+        $this->rest->seeResponseEquals(json_encode([
+            'body' => [
+                'users' => [
+                    '0' => ['id' => '0', 'name' => 'John Doe'],
+                    '1' => ['id' => '1', 'name' => 'Jane Doe'],
+                ],
+            ],
+        ]));
+    }
+
     public function testCanInspectResultOfPhpBrowserRequest(): void
     {
         $this->phpBrowser->amOnPage('/rest/user/');
