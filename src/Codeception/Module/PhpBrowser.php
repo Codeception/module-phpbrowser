@@ -22,13 +22,6 @@ use Symfony\Component\BrowserKit\AbstractBrowser;
  *
  * If test fails stores last shown page in 'output' dir.
  *
- * ## Status
- *
- * * Maintainer: **davert**
- * * Stability: **stable**
- * * Contact: codeception@codeception.com
- *
- *
  * ## Configuration
  *
  * * url *required* - start url of your app
@@ -42,28 +35,29 @@ use Symfony\Component\BrowserKit\AbstractBrowser;
  * * .. those and other [Guzzle Request options](https://docs.guzzlephp.org/en/latest/request-options.html)
  *
  *
- * ### Example (`acceptance.suite.yml`)
+ * ### Example (`Acceptance.suite.yml`)
  *
- *     modules:
- *        enabled:
- *            - PhpBrowser:
- *                url: 'http://localhost'
- *                auth: ['admin', '123345']
- *                curl:
- *                    CURLOPT_RETURNTRANSFER: true
- *                cookies:
- *                    cookie-1:
- *                        Name: userName
- *                        Value: john.doe
- *                    cookie-2:
- *                        Name: authToken
- *                        Value: 1abcd2345
- *                        Domain: subdomain.domain.com
- *                        Path: /admin/
- *                        Expires: 1292177455
- *                        Secure: true
- *                        HttpOnly: false
- *
+ * ```yaml
+ * modules:
+ *    enabled:
+ *        - PhpBrowser:
+ *            url: 'http://localhost' # Internationalized domain names (IDN) need to be passed in punycode
+ *            auth: ['admin', '123345']
+ *            curl:
+ *                CURLOPT_RETURNTRANSFER: true
+ *            cookies:
+ *                cookie-1:
+ *                    Name: userName
+ *                    Value: john.doe
+ *                cookie-2:
+ *                    Name: authToken
+ *                    Value: 1abcd2345
+ *                    Domain: subdomain.domain.com
+ *                    Path: /admin/
+ *                    Expires: 1292177455
+ *                    Secure: true
+ *                    HttpOnly: false
+ * ```
  *
  * All SSL certification checks are disabled by default.
  * Use Guzzle request options to configure certifications and others.
