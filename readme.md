@@ -9,7 +9,7 @@ A Codeception module for testing web application over HTTP.
 
 ## Requirements
 
-* `PHP 8.0` or higher.
+* `PHP 8.1` or higher.
 
 ## Installation
 
