@@ -292,7 +292,7 @@ class Guzzle extends AbstractBrowser
     {
         if (is_array($value)) {
             foreach ($value as $subKey => $subValue) {
-                $parts = array_merge($this->formatMultipart([], $key . sprintf('[%s]', $subKey), $subValue), $parts);
+                $parts = array_merge($parts, $this->formatMultipart([], $key . sprintf('[%s]', $subKey), $subValue));
             }
 
             return $parts;
