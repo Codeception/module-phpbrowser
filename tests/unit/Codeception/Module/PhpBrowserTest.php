@@ -708,37 +708,37 @@ HTML
 
     public function testIfStatusCodeIsWithin2xxRange(): void
     {
-        $this->module->amOnPage('https://httpstat.us/200');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=200');
         $this->module->seeResponseCodeIsSuccessful();
 
-        $this->module->amOnPage('https://httpstat.us/299');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=299');
         $this->module->seeResponseCodeIsSuccessful();
     }
 
     public function testIfStatusCodeIsWithin3xxRange(): void
     {
-        $this->module->amOnPage('https://httpstat.us/300');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=300');
         $this->module->seeResponseCodeIsRedirection();
 
-        $this->module->amOnPage('https://httpstat.us/399');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=399');
         $this->module->seeResponseCodeIsRedirection();
     }
 
     public function testIfStatusCodeIsWithin4xxRange(): void
     {
-        $this->module->amOnPage('https://httpstat.us/400');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=400');
         $this->module->seeResponseCodeIsClientError();
 
-        $this->module->amOnPage('https://httpstat.us/499');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=499');
         $this->module->seeResponseCodeIsClientError();
     }
 
     public function testIfStatusCodeIsWithin5xxRange(): void
     {
-        $this->module->amOnPage('https://httpstat.us/500');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=500');
         $this->module->seeResponseCodeIsServerError();
 
-        $this->module->amOnPage('https://httpstat.us/599');
+        $this->module->amOnPage('http://localhost:8000/status.php?status=599');
         $this->module->seeResponseCodeIsServerError();
     }
 
