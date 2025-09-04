@@ -47,6 +47,11 @@ $GLOBALS['RESTmap']['POST'] = [
         return [
             'uploaded' => isset($_FILES['file']['tmp_name']) && file_exists($_FILES['file']['tmp_name']),
         ];
+    },
+    'multipart-collections' => function () {
+        return [
+            'body' => $_POST,
+        ];
     }
 ];
 
