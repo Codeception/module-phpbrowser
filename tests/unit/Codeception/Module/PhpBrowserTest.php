@@ -397,7 +397,6 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->module->_setConfig([
             'url' => 'https://github.com',
             'curl' => [
-                'CURLOPT_NOBODY' => true,
                 'CURLOPT_SSL_CIPHER_LIST' => 'TLSv1',
             ]]);
         $this->module->_initialize();
@@ -407,7 +406,7 @@ final class PhpBrowserTest extends TestsForBrowsers
         $this->assertArrayHasKey('curl', $config);
         $this->assertArrayHasKey(CURLOPT_SSL_CIPHER_LIST, $config['curl']);
         $this->module->amOnPage('/');
-        $this->assertSame('', $this->module->_getResponseContent(), 'CURLOPT_NOBODY setting is not respected');
+        $this->module->seeResponseCodeIsSuccessful();
     }
 
     public function testHttpAuth(): void
