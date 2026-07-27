@@ -218,7 +218,6 @@ class Guzzle extends AbstractBrowser
             }
         }
 
-        // @phpstan-ignore-next-line
         return $this->createResponse($response);
     }
 
