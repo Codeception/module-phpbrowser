@@ -209,11 +209,13 @@ class Guzzle extends AbstractBrowser
                 $response = $this->client->send($guzzleRequest, $options);
             }
         } catch (RequestException $exception) {
-            if (!$exception->hasResponse()) {
+            // Guzzle 7 exposes the response on RequestException itself,
+            // Guzzle 8 only on its ResponseException subclass.
+            $response = method_exists($exception, 'getResponse') ? $exception->getResponse() : null;
+
+            if ($response === null) {
                 throw $exception;
             }
-
-            $response = $exception->getResponse();
         }
 
         // @phpstan-ignore-next-line
